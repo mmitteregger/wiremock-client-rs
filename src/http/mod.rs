@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
+use indexmap::IndexMap;
 
 pub use crate::http::delay_distribution::DelayDistribution;
 
@@ -11,6 +10,7 @@ pub type Result<T> = reqwest::Result<T>;
 #[allow(non_camel_case_types)]
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RequestMethod {
+    ANY,
     GET,
     POST,
     PUT,
@@ -27,17 +27,17 @@ pub struct ResponseDefinition {
     /// The HTTP status code to be returned.
     pub status: u16,
     /// The HTTP status message to be returned.
-    #[serde(rename = "statusMessage")]
-    pub status_message: String,
+    #[serde(rename = "statusMessage", skip_serializing_if = "Option::is_none")]
+    pub status_message: Option<String>,
     /// The response body to be returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub body: Option<Body>,
     /// Map of response headers to send.
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub headers: HashMap<String, String>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub headers: IndexMap<String, String>,
     /// Number of milliseconds to delay be before sending the response.
     #[serde(rename = "fixedDelayMilliseconds", skip_serializing_if = "Option::is_none")]
-    pub fixed_delay_milliseconds: Option<u16>,
+    pub fixed_delay_milliseconds: Option<u32>,
     /// The base URL of the target to proxy matching requests to.
     #[serde(rename = "proxyBaseUrl", skip_serializing_if = "Option::is_none")]
     pub proxy_base_url: Option<String>,
@@ -48,15 +48,14 @@ pub struct ResponseDefinition {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub transformers: Vec<String>,
     /// Parameters to apply to response transformers.
-    #[serde(rename = "transformerParameters", default, skip_serializing_if = "HashMap::is_empty")]
-    pub transformer_parameters: HashMap<String, String>,
+    #[serde(rename = "transformerParameters", default, skip_serializing_if = "IndexMap::is_empty")]
+    pub transformer_parameters: IndexMap<String, serde_json::Value>,
     /// Read-only flag indicating false if this was the default, unmatched response. Not present otherwise.
     #[serde(rename = "fromConfiguredStub", default = "crate::serde::default_true", skip_serializing)]
     pub from_configured_stub: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
 pub enum Body {
     #[serde(rename = "body")]
     String(String),

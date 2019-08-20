@@ -1,20 +1,23 @@
-use reqwest::{Method, RequestBuilder, Response};
+use reqwest::{Method, RequestBuilder, Response, StatusCode};
 use reqwest::header::HeaderValue;
 use serde::Serialize;
 
-pub use builder::WireMockClientBuilder;
+pub use builder::WireMockBuilder;
 pub use credentials::BasicCredentials;
 
+use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
 use crate::http::Result;
+use crate::matching::UrlPattern;
 use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult};
 use crate::security::ClientAuthenticator;
 use crate::stubbing::StubMapping;
+use uuid::Uuid;
 
-mod builder;
+pub(crate) mod builder;
 mod credentials;
 
-pub struct WireMockClient {
+pub struct WireMock {
     client: reqwest::Client,
     scheme: String,
     host: String,
@@ -24,13 +27,19 @@ pub struct WireMockClient {
     authenticator: Box<dyn ClientAuthenticator>,
 }
 
-impl Default for WireMockClient {
-    fn default() -> WireMockClient {
-        WireMockClientBuilder::new().build()
+impl Default for WireMock {
+    fn default() -> WireMock {
+        WireMockBuilder::new().build()
     }
 }
 
-impl WireMockClient {
+impl From<WireMockBuilder> for WireMock {
+    fn from(builder: WireMockBuilder) -> WireMock {
+        builder.build()
+    }
+}
+
+impl WireMock {
     pub fn host(&self) -> &str {
         &self.host
     }
@@ -39,17 +48,6 @@ impl WireMockClient {
         self.port
     }
 
-//    router.add(GET,  "/", RootTask.class);
-//    router.add(GET,  "", RootRedirectTask.class);
-//    router.add(POST, "/reset", ResetTask.class);
-//
-//    router.add(GET,  "/mappings", GetAllStubMappingsTask.class);
-//    router.add(POST, "/mappings", CreateStubMappingTask.class);
-//    router.add(DELETE, "/mappings", ResetStubMappingsTask.class);
-//
-//    router.add(POST, "/mappings/new", OldCreateStubMappingTask.class); // Deprecated
-//    router.add(POST, "/mappings/remove", OldRemoveStubMappingTask.class);  // Deprecated
-//    router.add(POST, "/mappings/edit", OldEditStubMappingTask.class);  // Deprecated
 //    router.add(POST, "/mappings/save", SaveMappingsTask.class);
 //    router.add(POST, "/mappings/reset", ResetToDefaultMappingsTask.class);
 //    router.add(GET,  "/mappings/{id}", GetStubMappingTask.class);
@@ -94,9 +92,38 @@ impl WireMockClient {
 //    router.add(GET, "/docs/swagger", GetSwaggerSpecTask.class);
 //    router.add(GET, "/docs", GetDocIndexTask.class);
 
+    pub fn given_that<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<StubMapping> {
+        let stub_mapping = stub_mapping.into();
+        self.add_stub_mapping(&stub_mapping)?;
+        Ok(stub_mapping)
+    }
+
+    pub fn stub_for<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<StubMapping> {
+        self.given_that(stub_mapping)
+    }
+
     pub fn add_stub_mapping(&self, stub_mapping: &StubMapping) -> Result<()> {
         self.send_json_request(Method::POST, "/mappings", stub_mapping)
             .map(|_| ())
+    }
+
+    pub fn edit_stub_mapping(&self, stub_mapping: &StubMapping) -> Result<()> {
+        self.send_json_request(Method::PUT, &format!("/mappings/{}", stub_mapping.id), stub_mapping)
+            .map(|_| ())
+    }
+
+    pub fn remove_stub_mapping(&self, id: &Uuid) -> Result<bool> {
+        self.send_empty_request(Method::DELETE, &format!("/mappings/{}", id))
+            .map(|_| true)
+            .or_else(|error| {
+                if let Some(status_code) = error.status() {
+                    if status_code == StatusCode::NOT_FOUND {
+                        return Ok(false);
+                    }
+                }
+
+                Err(error)
+            })
     }
 
     pub fn list_all_stub_mappings(&self) -> Result<ListStubMappingsResult> {
@@ -178,4 +205,16 @@ impl WireMockClient {
 
         request
     }
+}
+
+pub fn get<P>(url: P) -> MappingBuilder
+    where P: Into<UrlPattern>
+{
+    MappingBuilder {}
+}
+
+pub fn url_equal_to<S>(url: S) -> UrlPattern
+    where S: Into<String>
+{
+    UrlPattern::Url(url.into())
 }

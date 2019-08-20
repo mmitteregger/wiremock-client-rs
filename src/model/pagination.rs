@@ -8,10 +8,10 @@ pub struct PageParams {
 
 pub trait PaginatedResult<T> {
     fn selection(&self) -> &[T];
-    fn meta(&self) -> Meta;
+    fn meta(&self) -> &Meta;
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
     total: u16,
 }

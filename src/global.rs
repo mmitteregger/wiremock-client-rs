@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
+use indexmap::IndexMap;
 
 use crate::http::DelayDistribution;
 
@@ -10,14 +9,14 @@ pub struct GlobalSettings {
     fixed_delay: Option<u16>,
     #[serde(rename = "delayDistribution")]
     delay_distribution: Option<DelayDistribution>,
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    extended: HashMap<String, String>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    extended: IndexMap<String, serde_json::Value>,
 }
 
 pub struct GlobalSettingsBuilder {
     fixed_delay: Option<u16>,
     delay_distribution: Option<DelayDistribution>,
-    extended: HashMap<String, String>,
+    extended: IndexMap<String, serde_json::Value>,
 }
 
 impl GlobalSettingsBuilder {
@@ -25,7 +24,7 @@ impl GlobalSettingsBuilder {
         GlobalSettingsBuilder {
             fixed_delay: None,
             delay_distribution: None,
-            extended: HashMap::new(),
+            extended: IndexMap::new(),
         }
     }
 
@@ -39,7 +38,7 @@ impl GlobalSettingsBuilder {
         self
     }
 
-    pub fn extended(mut self, extended: HashMap<String, String>) -> GlobalSettingsBuilder {
+    pub fn extended(mut self, extended: IndexMap<String, serde_json::Value>) -> GlobalSettingsBuilder {
         self.extended = extended;
         self
     }

@@ -18,8 +18,8 @@ impl PaginatedResult<StubMapping> for ListStubMappingsResult {
         &self.mappings
     }
 
-    fn meta(&self) -> Meta {
-        unimplemented!()
+    fn meta(&self) -> &Meta {
+        &self.meta
     }
 }
 
