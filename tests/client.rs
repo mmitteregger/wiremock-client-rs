@@ -1,10 +1,9 @@
 use uuid::Uuid;
 
-use wiremock_client::{WireMock, WireMockBuilder, get, url_equal_to};
+use wiremock_client::{WireMock, WireMockBuilder, get, url_equal_to, ok, containing};
 use wiremock_client::global::GlobalSettingsBuilder;
-use wiremock_client::http::{DelayDistribution, RequestMethod, ResponseDefinition, Body};
-use wiremock_client::matching::{ContentPattern, RequestPattern, UrlPattern, ContainsPattern, EqualToPattern};
-use wiremock_client::stubbing::StubMapping;
+use wiremock_client::http::DelayDistribution;
+use wiremock_client::matching::{ContentPattern, UrlPattern, EqualToPattern};
 
 macro_rules! string_json_map {
     (@single $($x:tt)*) => (());
@@ -24,75 +23,46 @@ macro_rules! string_json_map {
 }
 
 #[test]
-#[ignore = "unimplemented"]
 fn stub_for_get_url_equal_to() {
-    let wire_mock = WireMock::default();
+    let wire_mock = create_wire_mock();
 
-    wire_mock.stub_for(get(url_equal_to("/some/thing"))).unwrap();
+    let stub_mapping = wire_mock.stub_for(get(url_equal_to("/some/thing"))).unwrap();
 
-    wire_mock.reset_mappings().unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    assert_eq!(stub_mapping_removed, true);
 }
 
 #[test]
-#[ignore = "unimplemented"]
 fn stub_for_get_str() {
-    let wire_mock = WireMock::default();
+    let wire_mock = create_wire_mock();
 
-    wire_mock.stub_for(get("/some/thing")).unwrap();
+    let stub_mapping = wire_mock.stub_for(get("/some/thing")).unwrap();
 
-    wire_mock.reset_mappings().unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    assert_eq!(stub_mapping_removed, true);
 }
 
 #[test]
-#[ignore = "unimplemented"]
 fn stub_for_get_string() {
-    let wire_mock = WireMock::default();
+    let wire_mock = create_wire_mock();
 
-    wire_mock.stub_for(get("/some/thing".to_string())).unwrap();
+    let stub_mapping = wire_mock.stub_for(get("/some/thing".to_string())).unwrap();
 
-    wire_mock.reset_mappings().unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    assert_eq!(stub_mapping_removed, true);
 }
 
 #[test]
 fn add_and_remove_stub_mapping() {
     let wire_mock = create_wire_mock();
 
-    let stub_mapping = StubMapping {
-        id: Uuid::new_v4(),
-        name: Some("Test: add_stub_mapping".to_string()),
-        request: RequestPattern {
-            url: UrlPattern::Url("test".to_string()),
-            method: RequestMethod::GET,
-            query_params: Default::default(),
-            headers: Default::default(),
-            cookies: Default::default(),
-            basic_auth_credentials: None,
-            body_patterns: vec![
-                ContentPattern::Contains(ContainsPattern::new("add_stub_mapping"))
-            ],
-        },
-        response: ResponseDefinition {
-            status: 200,
-            status_message: Some("OK".to_string()),
-            body: Some(Body::String("Hello world!".to_string())),
-            headers: Default::default(),
-            fixed_delay_milliseconds: None,
-            proxy_base_url: None,
-            fault: None,
-            transformers: vec![],
-            transformer_parameters: Default::default(),
-            from_configured_stub: false,
-        },
-        persistent: Some(false),
-        priority: Some(5),
-        scenario_name: None,
-        required_scenario_state: None,
-        new_scenario_state: None,
-        post_serve_actions: Default::default(),
-        metadata: Default::default(),
-    };
-
-    wire_mock.add_stub_mapping(&stub_mapping).unwrap();
+    let stub_mapping = wire_mock.stub_for(get(url_equal_to("test"))
+        .at_priority(5)
+        .with_name("Test: add_stub_mapping")
+        .with_request_body(containing("add_stub_mapping"))
+        .will_return(ok()
+            .with_status_message("OK")
+            .with_body("Hello world!"))).unwrap();
 
     let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
     assert_eq!(stub_mapping_removed, true);
@@ -102,42 +72,13 @@ fn add_and_remove_stub_mapping() {
 fn add_edit_and_remove_stub_mapping() {
     let wire_mock = create_wire_mock();
 
-    let stub_mapping = StubMapping {
-        id: Uuid::new_v4(),
-        name: Some("Test: edit_stub_mapping".to_string()),
-        request: RequestPattern {
-            url: UrlPattern::Url("test".to_string()),
-            method: RequestMethod::GET,
-            query_params: Default::default(),
-            headers: Default::default(),
-            cookies: Default::default(),
-            basic_auth_credentials: None,
-            body_patterns: vec![
-                ContentPattern::Contains(ContainsPattern::new("edit_stub_mapping".to_string())),
-            ],
-        },
-        response: ResponseDefinition {
-            status: 200,
-            status_message: Some("OK".to_string()),
-            body: Some(Body::String("Hello world!".to_string())),
-            headers: Default::default(),
-            fixed_delay_milliseconds: None,
-            proxy_base_url: None,
-            fault: None,
-            transformers: vec![],
-            transformer_parameters: Default::default(),
-            from_configured_stub: false,
-        },
-        persistent: Some(false),
-        priority: Some(5),
-        scenario_name: None,
-        required_scenario_state: None,
-        new_scenario_state: None,
-        post_serve_actions: Default::default(),
-        metadata: Default::default(),
-    };
-
-    wire_mock.add_stub_mapping(&stub_mapping).unwrap();
+    let stub_mapping = wire_mock.stub_for(get(url_equal_to("test"))
+        .at_priority(5)
+        .with_name("Test: edit_stub_mapping")
+        .with_request_body(containing("edit_stub_mapping"))
+        .will_return(ok()
+            .with_status_message("OK")
+            .with_body("Hello world!"))).unwrap();
 
     let mut edited_stub_mapping = stub_mapping;
     edited_stub_mapping.name = Some("Test: edit_stub_mapping (edited)".to_string());

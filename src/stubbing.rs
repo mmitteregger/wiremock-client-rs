@@ -5,6 +5,8 @@ use indexmap::IndexMap;
 use crate::http::ResponseDefinition;
 use crate::matching::RequestPattern;
 use crate::client::builder::{MappingBuilder, ScenarioMappingBuilder};
+use crate::common::Metadata;
+use crate::extension::Parameters;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StubMapping {
@@ -35,11 +37,11 @@ pub struct StubMapping {
     pub new_scenario_state: Option<String>,
     /// A map of the names of post serve action extensions to trigger and their parameters.
     #[serde(rename = "postServeActions", default, skip_serializing_if = "IndexMap::is_empty")]
-    pub post_serve_actions: IndexMap<String, serde_json::Value>,
+    pub post_serve_actions: IndexMap<String, Parameters>,
     /// Arbitrary metadata to be used for e.g. tagging, documentation.
     /// Can also be used to find and remove stubs.
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub metadata: IndexMap<String, serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Metadata::is_empty")]
+    pub metadata: Metadata,
 }
 
 impl From<MappingBuilder> for StubMapping {
@@ -52,4 +54,10 @@ impl From<ScenarioMappingBuilder> for StubMapping {
     fn from(builder: ScenarioMappingBuilder) -> StubMapping {
         builder.build()
     }
+}
+
+pub struct Scenario;
+
+impl Scenario {
+    pub const STARTED: &'static str = "Started";
 }

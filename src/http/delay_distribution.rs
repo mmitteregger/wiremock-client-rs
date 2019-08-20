@@ -10,7 +10,7 @@ pub enum DelayDistribution {
     },
     #[serde(rename = "uniform")]
     Uniform {
-        lower: u16,
-        upper: u16,
+        lower: u32,
+        upper: u32,
     },
 }

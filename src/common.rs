@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Metadata {
+    #[serde(flatten)]
     pub(crate) metadata: serde_json::Map<String, serde_json::Value>,
 }
 
@@ -16,6 +20,10 @@ impl Metadata {
         Metadata {
             metadata: serde_json::Map::with_capacity(capacity),
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.metadata.is_empty()
     }
 }
 

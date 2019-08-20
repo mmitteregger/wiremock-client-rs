@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
 use crate::common::Metadata;
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Parameters {
+    #[serde(flatten)]
     parameters: serde_json::Map<String, serde_json::Value>,
 }
 
@@ -38,6 +41,10 @@ impl Parameters {
         } else {
             panic!("data argument was not converted to json object, but is: {}", value)
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.parameters.is_empty()
     }
 }
 

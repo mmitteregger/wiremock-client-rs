@@ -1,13 +1,13 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use indexmap::IndexMap;
 
 use crate::client::BasicCredentials;
 use crate::http::RequestMethod;
 pub use crate::matching::content_pattern::*;
+pub use crate::matching::builder::*;
 
 mod content_pattern;
+mod builder;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RequestPattern {
@@ -47,6 +47,12 @@ pub enum UrlPattern {
     /// The path and query regex to match against.
     #[serde(rename = "urlPattern")]
     UrlPattern(String),
+}
+
+impl UrlPattern {
+    pub fn any() -> UrlPattern {
+        UrlPattern::UrlPattern(".*".to_string())
+    }
 }
 
 impl From<&str> for UrlPattern {

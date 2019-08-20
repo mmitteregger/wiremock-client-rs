@@ -2,6 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BasicCredentials {
-    pub username: String,
-    pub password: String,
+    pub(crate) username: String,
+    pub(crate) password: String,
 }

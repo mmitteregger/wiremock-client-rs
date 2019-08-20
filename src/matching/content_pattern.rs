@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
+use indexmap::IndexMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -12,8 +13,8 @@ pub enum ContentPattern {
     EqualToJson(EqualToJsonPattern),
     EqualTo(EqualToPattern),
     EqualToXml(EqualToXmlPattern),
-    // MatchesJsonPath,
-    // MatchesXPath,
+    MatchesJsonPath(MatchesJsonPathPattern),
+    MatchesXPath(MatchesXPathPattern),
     Regex(RegexPattern),
     NegativeRegex(NegativeRegexPattern),
 }
@@ -30,14 +31,14 @@ pub struct AbsentPattern {
 impl AbsentPattern {
     pub fn new() -> AbsentPattern {
         AbsentPattern {
-            absent: "(absent)".to_string(),
+            absent: String::new(),
         }
     }
 }
 
 impl StringValuePattern for AbsentPattern {
     fn value(&self) -> &str {
-        &self.absent
+        "(absent)"
     }
 }
 
@@ -129,17 +130,22 @@ pub struct EqualToJsonPattern {
 }
 
 impl EqualToJsonPattern {
-    pub fn new<S: Into<String>>(
-        json: S,
-        ignore_array_order: Option<bool>,
-        ignore_extra_elements: Option<bool>,
-    ) -> EqualToJsonPattern
-    {
+    pub fn new<S: Into<String>>(json: S) -> EqualToJsonPattern {
         EqualToJsonPattern {
             equal_to_json: json.into(),
-            ignore_array_order,
-            ignore_extra_elements,
+            ignore_array_order: None,
+            ignore_extra_elements: None,
         }
+    }
+
+    pub fn with_ignore_array_order(mut self, ignore_array_order: bool) -> EqualToJsonPattern {
+        self.ignore_array_order = Some(ignore_array_order);
+        self
+    }
+
+    pub fn with_ignore_extra_elements(mut self, ignore_extra_elements: bool) -> EqualToJsonPattern {
+        self.ignore_extra_elements = Some(ignore_extra_elements);
+        self
     }
 }
 
@@ -170,6 +176,11 @@ impl EqualToPattern {
             case_insensitive,
         }
     }
+
+    pub fn with_case_insensitive(mut self, case_insensitive: bool) -> EqualToPattern {
+        self.case_insensitive = Some(case_insensitive);
+        self
+    }
 }
 
 impl StringValuePattern for EqualToPattern {
@@ -197,19 +208,26 @@ pub struct EqualToXmlPattern {
 }
 
 impl EqualToXmlPattern {
-    pub fn new<S: Into<String>>(
-        xml: S,
-        enable_placeholders: Option<bool>,
-        placeholder_opening_delimiter_regex: Option<String>,
-        placeholder_closing_delimiter_regex: Option<String>,
-    ) -> EqualToXmlPattern
-    {
+    pub fn new<S: Into<String>>(xml: S) -> EqualToXmlPattern {
         EqualToXmlPattern {
             equal_to_xml: xml.into(),
-            enable_placeholders,
-            placeholder_opening_delimiter_regex,
-            placeholder_closing_delimiter_regex,
+            enable_placeholders: None,
+            placeholder_opening_delimiter_regex: None,
+            placeholder_closing_delimiter_regex: None,
         }
+    }
+
+    pub fn with_enable_placeholders(mut self, enable_placeholders: bool) -> EqualToXmlPattern {
+        self.enable_placeholders = Some(enable_placeholders);
+        self
+    }
+
+    pub fn with_placeholder_delimiter_regexes<S>(mut self, opening_regex: S, closing_regex: S) -> EqualToXmlPattern
+        where S: Into<String>,
+    {
+        self.placeholder_opening_delimiter_regex = Some(opening_regex.into());
+        self.placeholder_closing_delimiter_regex = Some(closing_regex.into());
+        self
     }
 }
 
@@ -222,6 +240,71 @@ impl StringValuePattern for EqualToXmlPattern {
 impl Into<ContentPattern> for EqualToXmlPattern {
     fn into(self) -> ContentPattern {
         ContentPattern::EqualToXml(self)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MatchesJsonPathPattern {
+    #[serde(rename = "matchesJsonPath")]
+    matches_json_path: String,
+}
+
+impl MatchesJsonPathPattern {
+    pub fn new<S: Into<String>>(json_path: S) -> MatchesJsonPathPattern {
+        MatchesJsonPathPattern {
+            matches_json_path: json_path.into(),
+        }
+    }
+}
+
+impl StringValuePattern for MatchesJsonPathPattern {
+    fn value(&self) -> &str {
+        &self.matches_json_path
+    }
+}
+
+impl Into<ContentPattern> for MatchesJsonPathPattern {
+    fn into(self) -> ContentPattern {
+        ContentPattern::MatchesJsonPath(self)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MatchesXPathPattern {
+    #[serde(rename = "matchesXPath")]
+    matches_xpath: String,
+    #[serde(rename = "xPathNamespaces")]
+    namespaces: IndexMap<String, String>,
+}
+
+impl MatchesXPathPattern {
+    pub fn new<S: Into<String>>(
+        xpath: S,
+        namespaces: IndexMap<String, String>,
+    ) -> MatchesXPathPattern {
+        MatchesXPathPattern {
+            matches_xpath: xpath.into(),
+            namespaces,
+        }
+    }
+
+    pub fn with_xpath_namespace<S>(mut self, name: S, namespace_uri: S) -> MatchesXPathPattern
+        where S: Into<String>
+    {
+        self.namespaces.insert(name.into(), namespace_uri.into());
+        self
+    }
+}
+
+impl StringValuePattern for MatchesXPathPattern {
+    fn value(&self) -> &str {
+        &self.matches_xpath
+    }
+}
+
+impl Into<ContentPattern> for MatchesXPathPattern {
+    fn into(self) -> ContentPattern {
+        ContentPattern::MatchesXPath(self)
     }
 }
 

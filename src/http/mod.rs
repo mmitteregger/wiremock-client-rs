@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use indexmap::IndexMap;
 
 pub use crate::http::delay_distribution::DelayDistribution;
+use crate::client::builder::ResponseDefinitionBuilder;
 
 mod delay_distribution;
 
@@ -38,6 +39,8 @@ pub struct ResponseDefinition {
     /// Number of milliseconds to delay be before sending the response.
     #[serde(rename = "fixedDelayMilliseconds", skip_serializing_if = "Option::is_none")]
     pub fixed_delay_milliseconds: Option<u32>,
+    #[serde(rename = "delayDistribution", skip_serializing_if = "Option::is_none")]
+    pub delay_distribution: Option<DelayDistribution>,
     /// The base URL of the target to proxy matching requests to.
     #[serde(rename = "proxyBaseUrl", skip_serializing_if = "Option::is_none")]
     pub proxy_base_url: Option<String>,
@@ -55,19 +58,43 @@ pub struct ResponseDefinition {
     pub from_configured_stub: bool,
 }
 
+impl From<ResponseDefinitionBuilder> for ResponseDefinition {
+    fn from(builder: ResponseDefinitionBuilder) -> ResponseDefinition {
+        builder.build()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Body {
     #[serde(rename = "body")]
     String(String),
     /// The response body as a base64 encoded string (useful for binary content).
-    #[serde(rename = "base64Body")]
-    Base64(String),
+    #[serde(rename = "base64Body", with = "crate::serde::base64")]
+    Base64(Vec<u8>),
     /// The response body as a JSON object.
     #[serde(rename = "jsonBody")]
     Json(String),
     /// The path to the file containing the response body, relative to the configured file root.
     #[serde(rename = "bodyFileName")]
     FileName(String),
+}
+
+impl From<&str> for Body {
+    fn from(body: &str) -> Body {
+        Body::String(body.to_owned())
+    }
+}
+
+impl From<String> for Body {
+    fn from(body: String) -> Body {
+        Body::String(body)
+    }
+}
+
+impl From<Vec<u8>> for Body {
+    fn from(body: Vec<u8>) -> Body {
+        Body::Base64(body)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
