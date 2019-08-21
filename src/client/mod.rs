@@ -13,7 +13,6 @@ use crate::matching::*;
 use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult};
 use crate::security::ClientAuthenticator;
 use crate::stubbing::StubMapping;
-use indexmap::IndexMap;
 
 pub(crate) mod builder;
 mod credentials;
@@ -247,7 +246,7 @@ pub fn equal_to_xml<S>(xml: S) -> EqualToXmlPattern
 pub fn matching_xpath<S>(value: S) -> MatchesXPathPattern
     where S: Into<String>,
 {
-    MatchesXPathPattern::new(value, IndexMap::new())
+    MatchesXPathPattern::new(value)
 }
 
 pub fn containing<S>(value: S) -> ContainsPattern
@@ -488,6 +487,60 @@ pub fn any_url() -> UrlPattern {
     UrlPattern::any()
 }
 
+pub fn get_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::GET, url_pattern.into())
+}
+
+pub fn post_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::POST, url_pattern.into())
+}
+
+pub fn put_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::PUT, url_pattern.into())
+}
+
+pub fn delete_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::DELETE, url_pattern.into())
+}
+
+pub fn patch_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::PATCH, url_pattern.into())
+}
+
+pub fn head_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::HEAD, url_pattern.into())
+}
+
+pub fn options_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::OPTIONS, url_pattern.into())
+}
+
+pub fn trace_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::TRACE, url_pattern.into())
+}
+
+pub fn any_requested_for<P>(url_pattern: P) -> RequestPatternBuilder
+    where P: Into<UrlPattern>,
+{
+    RequestPatternBuilder::new(RequestMethod::ANY, url_pattern.into())
+}
+
 #[cfg(test)]
 mod compile_only_dsl_examples {
     use super::*;
@@ -598,7 +651,7 @@ mod compile_only_dsl_examples {
 //    #[test]
 //    #[ignore = "this is a test that only checks if the code compiles"]
 //    fn finding_requests() {
-//        let requests: Vec<LoggedRequest> = findAll(putRequestedFor(url_matching("/api/.*")));
+//        let requests: Vec<LoggedRequest> = findAll(put_requested_for(url_matching("/api/.*")));
 //    }
 
     #[test]

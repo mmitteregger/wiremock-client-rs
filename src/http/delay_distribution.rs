@@ -13,4 +13,6 @@ pub enum DelayDistribution {
         lower: u32,
         upper: u32,
     },
+    #[doc(hidden)]
+    __Nonexhaustive,
 }

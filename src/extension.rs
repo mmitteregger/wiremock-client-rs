@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::Metadata;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Parameters {
     #[serde(flatten)]
-    parameters: serde_json::Map<String, serde_json::Value>,
+    pub(crate) parameters: serde_json::Map<String, serde_json::Value>,
 }
 
 impl Parameters {

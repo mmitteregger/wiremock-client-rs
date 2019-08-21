@@ -17,6 +17,8 @@ pub enum ContentPattern {
     MatchesXPath(MatchesXPathPattern),
     Regex(RegexPattern),
     NegativeRegex(NegativeRegexPattern),
+    #[doc(hidden)]
+    __Nonexhaustive,
 }
 
 pub trait StringValuePattern: Debug + Serialize + Deserialize<'static> + Into<ContentPattern> {
@@ -278,13 +280,10 @@ pub struct MatchesXPathPattern {
 }
 
 impl MatchesXPathPattern {
-    pub fn new<S: Into<String>>(
-        xpath: S,
-        namespaces: IndexMap<String, String>,
-    ) -> MatchesXPathPattern {
+    pub fn new<S: Into<String>>(xpath: S) -> MatchesXPathPattern {
         MatchesXPathPattern {
             matches_xpath: xpath.into(),
-            namespaces,
+            namespaces: IndexMap::new(),
         }
     }
 

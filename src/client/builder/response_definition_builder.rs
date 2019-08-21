@@ -1,7 +1,8 @@
 use indexmap::IndexMap;
+use reqwest::StatusCode;
 
 use crate::http::{ResponseDefinition, Body, Fault, DelayDistribution};
-use reqwest::StatusCode;
+use crate::extension::Parameters;
 
 pub struct ResponseDefinitionBuilder {
     status: u16,
@@ -13,7 +14,7 @@ pub struct ResponseDefinitionBuilder {
     proxy_base_url: Option<String>,
     fault: Option<Fault>,
     transformers: Vec<String>,
-    transformer_parameters: IndexMap<String, serde_json::Value>,
+    transformer_parameters: Parameters,
     from_configured_stub: bool,
 }
 
@@ -29,7 +30,7 @@ impl ResponseDefinitionBuilder {
             proxy_base_url: None,
             fault: None,
             transformers: Vec::new(),
-            transformer_parameters: IndexMap::new(),
+            transformer_parameters: Parameters::empty(),
             from_configured_stub: true,
         }
     }
@@ -108,7 +109,7 @@ impl ResponseDefinitionBuilder {
         where K: Into<String>,
               V: Into<serde_json::Value>,
     {
-        self.transformer_parameters.insert(key.into(), value.into());
+        self.transformer_parameters.parameters.insert(key.into(), value.into());
         self
     }
 

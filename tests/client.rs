@@ -1,9 +1,8 @@
 use uuid::Uuid;
 
-use wiremock_client::{WireMock, WireMockBuilder, get, url_equal_to, ok, containing};
+use wiremock_client::{WireMock, WireMockBuilder, get, url_equal_to, ok, containing, no_content, url_path_equal_to, equal_to, get_requested_for};
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
-use wiremock_client::matching::{ContentPattern, UrlPattern, EqualToPattern};
 
 macro_rules! string_json_map {
     (@single $($x:tt)*) => (());
@@ -28,7 +27,7 @@ fn stub_for_get_url_equal_to() {
 
     let stub_mapping = wire_mock.stub_for(get(url_equal_to("/some/thing"))).unwrap();
 
-    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
 }
 
@@ -38,7 +37,7 @@ fn stub_for_get_str() {
 
     let stub_mapping = wire_mock.stub_for(get("/some/thing")).unwrap();
 
-    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
 }
 
@@ -48,7 +47,7 @@ fn stub_for_get_string() {
 
     let stub_mapping = wire_mock.stub_for(get("/some/thing".to_string())).unwrap();
 
-    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
 }
 
@@ -64,7 +63,7 @@ fn add_and_remove_stub_mapping() {
             .with_status_message("OK")
             .with_body("Hello world!"))).unwrap();
 
-    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id).unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
 }
 
@@ -81,19 +80,17 @@ fn add_edit_and_remove_stub_mapping() {
             .with_body("Hello world!"))).unwrap();
 
     let mut edited_stub_mapping = stub_mapping;
-    edited_stub_mapping.name = Some("Test: edit_stub_mapping (edited)".to_string());
-    edited_stub_mapping.request.url = UrlPattern::UrlPath("test".to_string());
-    edited_stub_mapping.request.body_patterns = vec![
-        ContentPattern::EqualTo(EqualToPattern::new("edit_stub_mapping".to_string(), Some(false))),
-    ];
-    edited_stub_mapping.response.status = 204;
-    edited_stub_mapping.response.status_message = Some("No content".to_string());
-    edited_stub_mapping.response.body = None;
-    edited_stub_mapping.priority = Some(4);
+    edited_stub_mapping.set_priority(4);
+    edited_stub_mapping.set_name("Test: edit_stub_mapping (edited)");
+    edited_stub_mapping.set_request(get_requested_for(url_path_equal_to("test"))
+        .with_request_body(equal_to("edit_stub_mapping")
+            .with_case_insensitive(false)));
+    edited_stub_mapping.set_response(no_content()
+        .with_status_message("No content"));
 
     wire_mock.edit_stub_mapping(&edited_stub_mapping).unwrap();
 
-    let stub_mapping_removed = wire_mock.remove_stub_mapping(&edited_stub_mapping.id).unwrap();
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&edited_stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
 }
 

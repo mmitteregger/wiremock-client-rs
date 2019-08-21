@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 use crate::BasicCredentials;
 
 pub struct RequestPatternBuilder {
-    url: UrlPattern,
     method: RequestMethod,
+    url_pattern: UrlPattern,
     headers: IndexMap<String, ContentPattern>,
     query_params: IndexMap<String, ContentPattern>,
     body_patterns: Vec<ContentPattern>,
@@ -17,10 +17,10 @@ pub struct RequestPatternBuilder {
 }
 
 impl RequestPatternBuilder {
-    pub fn new(request_method: RequestMethod, url_pattern: UrlPattern) -> RequestPatternBuilder {
+    pub(crate) fn new(method: RequestMethod, url_pattern: UrlPattern) -> RequestPatternBuilder {
         RequestPatternBuilder {
-            url: url_pattern,
-            method: request_method,
+            method,
+            url_pattern,
             headers: IndexMap::new(),
             query_params: IndexMap::new(),
             body_patterns: Vec::new(),
@@ -29,10 +29,10 @@ impl RequestPatternBuilder {
         }
     }
 
-    pub fn all_requests() -> RequestPatternBuilder {
+    pub(crate) fn all_requests() -> RequestPatternBuilder {
         RequestPatternBuilder {
-            url: UrlPattern::any(),
             method: RequestMethod::ANY,
+            url_pattern: UrlPattern::any(),
             headers: IndexMap::new(),
             query_params: IndexMap::new(),
             body_patterns: Vec::new(),
@@ -44,7 +44,7 @@ impl RequestPatternBuilder {
     pub fn with_url<S>(mut self, url: S) -> RequestPatternBuilder
         where S: Into<String>
     {
-        self.url = crate::url_equal_to(url);
+        self.url_pattern = crate::url_equal_to(url);
         self
     }
 
@@ -122,8 +122,8 @@ impl RequestPatternBuilder {
 
     pub fn build(self) -> RequestPattern {
         RequestPattern {
-            url: self.url,
             method: self.method,
+            url_pattern: self.url_pattern,
             query_params: self.query_params,
             headers: self.headers,
             cookies: self.cookies,
