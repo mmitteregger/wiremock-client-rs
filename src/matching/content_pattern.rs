@@ -172,10 +172,10 @@ pub struct EqualToPattern {
 }
 
 impl EqualToPattern {
-    pub fn new<S: Into<String>>(expected: S, case_insensitive: Option<bool>) -> EqualToPattern {
+    pub fn new<S: Into<String>>(expected: S) -> EqualToPattern {
         EqualToPattern {
             equal_to: expected.into(),
-            case_insensitive,
+            case_insensitive: None,
         }
     }
 
