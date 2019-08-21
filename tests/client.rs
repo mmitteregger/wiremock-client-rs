@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use wiremock_client::{WireMock, WireMockBuilder, get, url_equal_to, ok, containing, no_content, url_path_equal_to, equal_to, get_requested_for};
+use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder};
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
 
@@ -46,6 +46,35 @@ fn stub_for_get_string() {
     let wire_mock = create_wire_mock();
 
     let stub_mapping = wire_mock.stub_for(get("/some/thing".to_string())).unwrap();
+
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
+    assert_eq!(stub_mapping_removed, true);
+}
+
+#[test]
+fn stub_with_single_header_value_response() {
+    let wire_mock = create_wire_mock();
+
+    let stub_mapping = wire_mock.stub_for(get("/some/thing".to_string())
+        .will_return(a_response()
+            .with_header(http::header::SET_COOKIE, "single-value")))
+        .unwrap();
+    print_json_value(&wire_mock.list_all_stub_mappings().unwrap());
+
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
+    assert_eq!(stub_mapping_removed, true);
+}
+
+#[test]
+fn stub_with_multi_header_value_response() {
+    let wire_mock = create_wire_mock();
+
+    let stub_mapping = wire_mock.stub_for(get("/some/thing".to_string())
+        .will_return(a_response()
+            .with_header(http::header::SET_COOKIE, "value1")
+            .with_header(http::header::SET_COOKIE, "value2")))
+        .unwrap();
+    print_json_value(&wire_mock.list_all_stub_mappings().unwrap());
 
     let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);

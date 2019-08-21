@@ -1,5 +1,6 @@
-use reqwest::{Method, RequestBuilder, Response, StatusCode};
-use reqwest::header::HeaderValue;
+use http::{Method, StatusCode};
+use reqwest::{RequestBuilder, Response};
+use http::HeaderValue;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -197,7 +198,7 @@ impl WireMock {
         let mut request = self.client.request(method, &url);
 
         if let Some(host_header) = self.host_header.as_ref() {
-            request = request.header(reqwest::header::HOST, host_header);
+            request = request.header(http::header::HOST, host_header);
         };
 
         for (header_name, header_value) in self.authenticator.generate_auth_headers().iter() {

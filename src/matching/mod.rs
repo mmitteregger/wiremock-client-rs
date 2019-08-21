@@ -11,11 +11,11 @@ mod builder;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RequestPattern {
-    /// The HTTP request method e.g. GET
-    pub(crate) method: RequestMethod,
     /// The url pattern to match exactly against.
     #[serde(flatten)]
     pub(crate) url_pattern: UrlPattern,
+    /// The HTTP request method e.g. GET
+    pub(crate) method: RequestMethod,
     /// Query parameter patterns to match against.
     #[serde(rename = "queryParameters", default, skip_serializing_if = "IndexMap::is_empty")]
     pub(crate) query_params: IndexMap<String, ContentPattern>,

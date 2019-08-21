@@ -1,3 +1,5 @@
+use http::StatusCode;
+
 use crate::client::ResponseDefinitionBuilder;
 use crate::http::Body;
 
@@ -6,7 +8,7 @@ pub fn a_response() -> ResponseDefinitionBuilder {
 }
 
 pub fn ok() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::OK.as_u16())
+    status(StatusCode::OK.as_u16())
 }
 
 pub fn ok_with_body<B>(body: B) -> ResponseDefinitionBuilder
@@ -43,36 +45,36 @@ pub fn ok_text_xml<B>(body: B) -> ResponseDefinitionBuilder
 }
 
 pub fn created() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::CREATED.as_u16())
+    status(StatusCode::CREATED.as_u16())
 }
 
 pub fn no_content() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::NO_CONTENT.as_u16())
+    status(StatusCode::NO_CONTENT.as_u16())
 }
 
 pub fn permanent_redirect<S>(location: S) -> ResponseDefinitionBuilder
-    where S: Into<String>,
+    where S: AsRef<str>,
 {
-    status(reqwest::StatusCode::PERMANENT_REDIRECT.as_u16())
+    status(StatusCode::PERMANENT_REDIRECT.as_u16())
         .with_header(reqwest::header::LOCATION.to_string(), location)
 }
 
 pub fn temporary_redirect<S>(location: S) -> ResponseDefinitionBuilder
-    where S: Into<String>,
+    where S: AsRef<str>,
 {
-    status(reqwest::StatusCode::TEMPORARY_REDIRECT.as_u16())
+    status(StatusCode::TEMPORARY_REDIRECT.as_u16())
         .with_header(reqwest::header::LOCATION.to_string(), location)
 }
 
 pub fn see_other<S>(location: S) -> ResponseDefinitionBuilder
-    where S: Into<String>,
+    where S: AsRef<str>,
 {
-    status(reqwest::StatusCode::SEE_OTHER.as_u16())
+    status(StatusCode::SEE_OTHER.as_u16())
         .with_header(reqwest::header::LOCATION.to_string(), location)
 }
 
 pub fn bad_request() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::BAD_REQUEST.as_u16())
+    status(StatusCode::BAD_REQUEST.as_u16())
 }
 
 pub fn bad_request_entity() -> ResponseDefinitionBuilder {
@@ -80,27 +82,27 @@ pub fn bad_request_entity() -> ResponseDefinitionBuilder {
 }
 
 pub fn unprocessable_entity() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::UNPROCESSABLE_ENTITY.as_u16())
+    status(StatusCode::UNPROCESSABLE_ENTITY.as_u16())
 }
 
 pub fn unauthorized() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::UNAUTHORIZED.as_u16())
+    status(StatusCode::UNAUTHORIZED.as_u16())
 }
 
 pub fn forbidden() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::FORBIDDEN.as_u16())
+    status(StatusCode::FORBIDDEN.as_u16())
 }
 
 pub fn not_found() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::NOT_FOUND.as_u16())
+    status(StatusCode::NOT_FOUND.as_u16())
 }
 
 pub fn server_error() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::INTERNAL_SERVER_ERROR.as_u16())
+    status(StatusCode::INTERNAL_SERVER_ERROR.as_u16())
 }
 
 pub fn service_unavailable() -> ResponseDefinitionBuilder {
-    status(reqwest::StatusCode::SERVICE_UNAVAILABLE.as_u16())
+    status(StatusCode::SERVICE_UNAVAILABLE.as_u16())
 }
 
 pub fn status(status: u16) -> ResponseDefinitionBuilder {

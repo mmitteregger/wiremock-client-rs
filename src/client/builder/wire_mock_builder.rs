@@ -1,4 +1,4 @@
-use reqwest::header::HeaderValue;
+use http::HeaderValue;
 
 use crate::client::WireMock;
 use crate::security::{ClientAuthenticator, NoClientAuthenticator};

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use indexmap::IndexMap;
+use http::HeaderMap;
 
 pub use crate::http::delay_distribution::DelayDistribution;
 use crate::client::builder::ResponseDefinitionBuilder;
@@ -37,8 +37,8 @@ pub struct ResponseDefinition {
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub(crate) body: Option<Body>,
     /// Map of response headers to send.
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub(crate) headers: IndexMap<String, String>,
+    #[serde(default, skip_serializing_if = "HeaderMap::is_empty", with = "crate::serde::header_map")]
+    pub(crate) headers: HeaderMap,
     /// Number of milliseconds to delay be before sending the response.
     #[serde(rename = "fixedDelayMilliseconds", skip_serializing_if = "Option::is_none")]
     pub(crate) fixed_delay_milliseconds: Option<u32>,
@@ -74,11 +74,11 @@ impl ResponseDefinition {
         self.body.as_ref()
     }
 
-    pub fn headers(&self) -> &IndexMap<String, String> {
+    pub fn headers(&self) -> &HeaderMap {
         &self.headers
     }
 
-    pub fn headers_mut(&mut self) -> &mut IndexMap<String, String> {
+    pub fn headers_mut(&mut self) -> &mut HeaderMap {
         &mut self.headers
     }
 

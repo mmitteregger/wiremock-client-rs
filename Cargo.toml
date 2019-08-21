@@ -12,6 +12,7 @@ categories = ["development-tools::testing"]
 license = "Apache-2.0/MIT"
 
 [dependencies]
+http = "0.1"
 reqwest = "0.9"
 base64 = "0.10"
 uuid = { version = "0.7", features = ["v4", "serde"] }

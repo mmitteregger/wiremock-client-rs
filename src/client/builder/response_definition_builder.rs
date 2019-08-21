@@ -1,5 +1,5 @@
-use indexmap::IndexMap;
-use reqwest::StatusCode;
+use http::{StatusCode, HttpTryFrom};
+use http::header::{HeaderMap, HeaderName, HeaderValue};
 
 use crate::http::{ResponseDefinition, Body, Fault, DelayDistribution};
 use crate::extension::Parameters;
@@ -8,7 +8,7 @@ pub struct ResponseDefinitionBuilder {
     status: u16,
     status_message: Option<String>,
     body: Option<Body>,
-    headers: IndexMap<String, String>,
+    headers: HeaderMap,
     fixed_delay_milliseconds: Option<u32>,
     delay_distribution: Option<DelayDistribution>,
     proxy_base_url: Option<String>,
@@ -24,7 +24,7 @@ impl ResponseDefinitionBuilder {
             status: StatusCode::OK.as_u16(),
             status_message: None,
             body: None,
-            headers: IndexMap::new(),
+            headers: HeaderMap::new(),
             fixed_delay_milliseconds: None,
             delay_distribution: None,
             proxy_base_url: None,
@@ -41,10 +41,33 @@ impl ResponseDefinitionBuilder {
     }
 
     pub fn with_header<K, V>(mut self, key: K, value: V) -> ResponseDefinitionBuilder
-        where K: Into<String>,
-              V: Into<String>,
+        where K: AsRef<str>,
+              V: AsRef<str>,
     {
-        self.headers.insert(key.into(), value.into());
+        let key_ref = key.as_ref();
+        let header_name = match HeaderName::try_from(key_ref) {
+            Ok(name) => name,
+            Err(_invalid_header_name_error) => {
+                panic!("header name \"{}\" is invalid", key_ref);
+            }
+        };
+
+        let value_ref = value.as_ref();
+        let header_value = match HeaderValue::from_str(value_ref) {
+            Ok(name) => name,
+            Err(_invalid_header_value_error) => {
+                panic!("header value \"{}\" is invalid", value_ref);
+            }
+        };
+
+        self.headers.append(header_name, header_value);
+        self
+    }
+
+    pub fn with_headers<'a, H>(mut self, headers: H) -> ResponseDefinitionBuilder
+        where H: Into<HeaderMap>,
+    {
+        self.headers = headers.into();
         self
     }
 
@@ -101,7 +124,7 @@ impl ResponseDefinitionBuilder {
     pub fn with_transformers<I>(mut self, response_transformer_names: I) -> ResponseDefinitionBuilder
         where I: IntoIterator<Item=String>,
     {
-        self.transformers.extend(response_transformer_names.into_iter());
+        self.transformers.extend(response_transformer_names);
         self
     }
 
@@ -138,11 +161,6 @@ impl ResponseDefinitionBuilder {
 //    public static <T> ResponseDefinitionBuilder okForEmptyJson() {
 //        return responseDefinition().withStatus(HTTP_OK).withBody("{}").withHeader("Content-Type", "application/json");
 //    }
-
-    pub fn with_headers(mut self, headers: IndexMap<String, String>) -> ResponseDefinitionBuilder {
-        self.headers = headers;
-        self
-    }
 
     pub fn with_base64body<B>(mut self, base64_body: B) -> ResponseDefinitionBuilder
         where B: Into<Vec<u8>>,

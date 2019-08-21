@@ -1,4 +1,4 @@
-use reqwest::header::{self, HeaderMap, HeaderValue};
+use http::header::{self, HeaderMap, HeaderValue};
 
 pub trait ClientAuthenticator {
     fn generate_auth_headers(&self) -> HeaderMap;
