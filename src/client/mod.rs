@@ -14,6 +14,8 @@ use crate::http::{Result, Error};
 use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult, SingleServedStubResult};
 use crate::security::ClientAuthenticator;
 use crate::stubbing::{StubMapping, ServeEvent};
+use crate::matching::RequestPattern;
+use crate::verification::VerificationResult;
 
 pub(crate) mod builder;
 mod credentials;
@@ -64,7 +66,6 @@ impl WireMock {
 //
 //    router.add(DELETE,  "/requests", ResetRequestsTask.class);
 //    router.add(POST, "/requests/reset", OldResetRequestsTask.class);  // Deprecated
-//    router.add(POST, "/requests/count", GetRequestCountTask.class);
 //    router.add(POST, "/requests/find", FindRequestsTask.class);
 //    router.add(GET,  "/requests/unmatched", FindUnmatchedRequestsTask.class);
 //    router.add(GET,  "/requests/unmatched/near-misses", FindNearMissesForUnmatchedTask.class);
@@ -168,6 +169,11 @@ impl WireMock {
             .and_then(|mut response| response.json::<SingleServedStubResult>())
             .map(|result| Some(result.into()))
             .or_else(map_not_found_error_to_none)
+    }
+
+    pub fn count_requests_matching(&self, request_pattern: &RequestPattern) -> Result<VerificationResult> {
+        self.send_json_request(Method::POST, "/requests/count", request_pattern)
+            .and_then(|mut response| response.json::<VerificationResult>())
     }
 
     pub fn shutdown_server(&self) -> Result<()> {
