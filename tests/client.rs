@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder};
+use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder, any_url, any};
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
 
@@ -59,7 +59,7 @@ fn stub_with_single_header_value_response() {
         .will_return(a_response()
             .with_header(http::header::SET_COOKIE, "single-value")))
         .unwrap();
-    print_json_value(&wire_mock.list_all_stub_mappings().unwrap());
+    print_json_value(&wire_mock.get_stub_mapping(stub_mapping.id()).unwrap());
 
     let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
@@ -74,7 +74,7 @@ fn stub_with_multi_header_value_response() {
             .with_header(http::header::SET_COOKIE, "value1")
             .with_header(http::header::SET_COOKIE, "value2")))
         .unwrap();
-    print_json_value(&wire_mock.list_all_stub_mappings().unwrap());
+    print_json_value(&wire_mock.get_stub_mapping(stub_mapping.id()).unwrap());
 
     let stub_mapping_removed = wire_mock.remove_stub_mapping(&stub_mapping.id()).unwrap();
     assert_eq!(stub_mapping_removed, true);
@@ -129,6 +129,24 @@ fn remove_non_existent_stub_mapping() {
 
     let stub_mapping_removed = wire_mock.remove_stub_mapping(&Uuid::new_v4()).unwrap();
     assert_eq!(stub_mapping_removed, false);
+}
+
+#[test]
+fn get_stub_mapping() {
+    let wire_mock = create_wire_mock();
+
+    let stub_mapping = wire_mock.stub_for(any(any_url())).unwrap();
+
+    let opt_stub_mapping = wire_mock.get_stub_mapping(stub_mapping.id()).unwrap();
+    assert_eq!(opt_stub_mapping.unwrap().id(), stub_mapping.id());
+}
+
+#[test]
+fn get_non_existent_stub_mapping() {
+    let wire_mock = create_wire_mock();
+
+    let opt_stub_mapping = wire_mock.get_stub_mapping(&Uuid::new_v4()).unwrap();
+    assert!(opt_stub_mapping.is_none());
 }
 
 #[test]

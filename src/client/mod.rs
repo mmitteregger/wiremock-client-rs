@@ -11,7 +11,7 @@ pub use dsl::*;
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
 use crate::http::Result;
-use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult};
+use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult};
 use crate::security::ClientAuthenticator;
 use crate::stubbing::StubMapping;
 
@@ -51,10 +51,6 @@ impl WireMock {
     }
 
 //    router.add(POST, "/mappings/save", SaveMappingsTask.class);
-//    router.add(POST, "/mappings/reset", ResetToDefaultMappingsTask.class);
-//    router.add(GET,  "/mappings/{id}", GetStubMappingTask.class);
-//    router.add(PUT,  "/mappings/{id}", EditStubMappingTask.class);
-//    router.add(DELETE, "/mappings/{id}", RemoveStubMappingTask.class);
 //    router.add(POST, "/mappings/find-by-metadata", FindStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/remove-by-metadata", RemoveStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/import", ImportStubMappingsTask.class);
@@ -131,6 +127,21 @@ impl WireMock {
     pub fn list_all_stub_mappings(&self) -> Result<ListStubMappingsResult> {
         self.send_empty_request(Method::GET, "/")
             .and_then(|mut response| response.json::<ListStubMappingsResult>())
+    }
+
+    pub fn get_stub_mapping(&self, id: &Uuid) -> Result<Option<StubMapping>> {
+        self.send_empty_request(Method::GET, &format!("/mappings/{}", id))
+            .and_then(|mut response| response.json::<SingleStubMappingResult>())
+            .map(|result| Some(result.into()))
+            .or_else(|error| {
+                if let Some(status_code) = error.status() {
+                    if status_code == StatusCode::NOT_FOUND {
+                        return Ok(None);
+                    }
+                }
+
+                Err(error)
+            })
     }
 
     pub fn reset_all(&self) -> Result<()> {

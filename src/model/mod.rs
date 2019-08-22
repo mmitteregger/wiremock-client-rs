@@ -1,45 +1,17 @@
+use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
 
 pub use pagination::{Meta, PageParams, PaginatedResult};
-
-use crate::stubbing::StubMapping;
-use crate::global::GlobalSettings;
+pub use get_global_settings_result::GetGlobalSettingsResult;
+pub use list_stub_mappings_result::ListStubMappingsResult;
+pub use single_stub_mapping_result::SingleStubMappingResult;
 
 mod pagination;
+mod get_global_settings_result;
+mod list_stub_mappings_result;
+mod single_stub_mapping_result;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ListStubMappingsResult {
-    mappings: Vec<StubMapping>,
-    meta: Meta,
-}
-
-impl PaginatedResult<StubMapping> for ListStubMappingsResult {
-    fn selection(&self) -> &[StubMapping] {
-        &self.mappings
-    }
-
-    fn meta(&self) -> &Meta {
-        &self.meta
-    }
-}
-
-impl ListStubMappingsResult {
-    pub fn mappings(&self) -> &[StubMapping] {
-        self.selection()
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetGlobalSettingsResult {
-    settings: GlobalSettings,
-}
-
-impl GetGlobalSettingsResult {
-    pub fn settings(&self) -> &GlobalSettings {
-        &self.settings
-    }
-
-    pub fn into_settings(self) -> GlobalSettings {
-        self.settings
-    }
+pub trait SingleItemResult<T>: Debug + Serialize + Deserialize<'static> + Into<T> {
+    fn item(&self) -> &T;
+    fn item_mut(&mut self) -> &mut T;
 }

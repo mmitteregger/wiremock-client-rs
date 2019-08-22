@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -6,7 +7,7 @@ pub struct PageParams {
     offset: u16,
 }
 
-pub trait PaginatedResult<T> {
+pub trait PaginatedResult<T>: Debug + Serialize + Deserialize<'static> {
     fn selection(&self) -> &[T];
     fn meta(&self) -> &Meta;
 }
