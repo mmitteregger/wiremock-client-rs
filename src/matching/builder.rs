@@ -123,7 +123,7 @@ impl RequestPatternBuilder {
     pub fn build(self) -> RequestPattern {
         RequestPattern {
             method: self.method,
-            url_pattern: self.url_pattern,
+            url_pattern: Some(self.url_pattern),
             query_params: self.query_params,
             headers: self.headers,
             cookies: self.cookies,

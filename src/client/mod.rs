@@ -11,9 +11,9 @@ pub use dsl::*;
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
 use crate::http::Result;
-use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult};
+use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult};
 use crate::security::ClientAuthenticator;
-use crate::stubbing::StubMapping;
+use crate::stubbing::{StubMapping, ServeEvent};
 
 pub(crate) mod builder;
 mod credentials;
@@ -62,7 +62,6 @@ impl WireMock {
 //    router.add(GET, "/scenarios", GetAllScenariosTask.class);
 //    router.add(POST, "/scenarios/reset", ResetScenariosTask.class);
 //
-//    router.add(GET,  "/requests", GetAllRequestsTask.class);
 //    router.add(DELETE,  "/requests", ResetRequestsTask.class);
 //    router.add(POST, "/requests/reset", OldResetRequestsTask.class);  // Deprecated
 //    router.add(POST, "/requests/count", GetRequestCountTask.class);
@@ -172,6 +171,12 @@ impl WireMock {
     pub fn reset_to_default_mappings(&self) -> Result<()> {
         self.send_empty_request(Method::POST, "/mappings/reset")
             .map(|_| ())
+    }
+
+    pub fn get_serve_events(&self) -> Result<Vec<ServeEvent>> {
+        self.send_empty_request(Method::GET, "/requests")
+            .and_then(|mut response| response.json::<GetServeEventsResult>())
+            .map(|result| result.into())
     }
 
     pub fn shutdown_server(&self) -> Result<()> {

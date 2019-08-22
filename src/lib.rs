@@ -9,4 +9,5 @@ pub mod http;
 mod client;
 pub mod common;
 pub mod extension;
+pub mod verification;
 mod serde;

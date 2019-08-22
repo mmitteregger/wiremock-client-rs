@@ -14,6 +14,10 @@ impl PaginatedResult<StubMapping> for ListStubMappingsResult {
         &self.mappings
     }
 
+    fn selection_mut(&mut self) -> &mut Vec<StubMapping> {
+        &mut self.mappings
+    }
+
     fn meta(&self) -> &Meta {
         &self.meta
     }

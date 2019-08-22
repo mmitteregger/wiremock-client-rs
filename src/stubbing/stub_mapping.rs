@@ -45,21 +45,21 @@ pub struct StubMapping {
 }
 
 impl StubMapping {
-	pub fn set_id(&mut self, id: Uuid) {
-		self.id = id;
-	}
+    pub fn set_id(&mut self, id: Uuid) {
+        self.id = id;
+    }
 
-	pub fn id(&self) -> &Uuid {
-		&self.id
-	}
+    pub fn id(&self) -> &Uuid {
+        &self.id
+    }
 
     pub fn set_name<S>(&mut self, name: S) where S: Into<String> {
         self.name = Some(name.into());
     }
 
-	pub fn name(&self) -> Option<&str> {
+    pub fn name(&self) -> Option<&str> {
         self.name.as_ref().map(|name| name.as_str())
-	}
+    }
 
     pub fn set_persistent(&mut self, persistent: bool) {
         self.persistent = Some(persistent);
@@ -74,60 +74,60 @@ impl StubMapping {
     }
 
     pub fn request(&self) -> &RequestPattern {
-		&self.request
-	}
+        &self.request
+    }
 
     pub fn set_response<R>(&mut self, response: R) where R: Into<ResponseDefinition> {
         self.response = response.into();
     }
 
-	pub fn response(&self) -> &ResponseDefinition {
-		&self.response
-	}
+    pub fn response(&self) -> &ResponseDefinition {
+        &self.response
+    }
 
-	pub fn priority(&self) -> u16 {
-		self.priority.unwrap_or(5)
-	}
+    pub fn priority(&self) -> u16 {
+        self.priority.unwrap_or(5)
+    }
 
-	pub fn set_priority(&mut self, priority: u16) {
-		self.priority = Some(priority);
-	}
+    pub fn set_priority(&mut self, priority: u16) {
+        self.priority = Some(priority);
+    }
 
-	pub fn scenario_name(&self) -> Option<&str> {
-		self.scenario_name.as_ref().map(|scenario_name| scenario_name.as_str())
-	}
+    pub fn scenario_name(&self) -> Option<&str> {
+        self.scenario_name.as_ref().map(|scenario_name| scenario_name.as_str())
+    }
 
-	pub fn set_scenario_name<S>(&mut self, scenario_name: S) where S: Into<String> {
-		self.scenario_name = Some(scenario_name.into());
-	}
+    pub fn set_scenario_name<S>(&mut self, scenario_name: S) where S: Into<String> {
+        self.scenario_name = Some(scenario_name.into());
+    }
 
-	pub fn required_scenario_state(&self) -> Option<&str> {
+    pub fn required_scenario_state(&self) -> Option<&str> {
         self.required_scenario_state.as_ref().map(|state| state.as_str())
-	}
+    }
 
-	pub fn set_required_scenario_state<S>(&mut self, required_scenario_state: S) where S: Into<String> {
-		self.required_scenario_state = Some(required_scenario_state.into());
-	}
+    pub fn set_required_scenario_state<S>(&mut self, required_scenario_state: S) where S: Into<String> {
+        self.required_scenario_state = Some(required_scenario_state.into());
+    }
 
-	pub fn new_scenario_state(&self) -> Option<&str> {
+    pub fn new_scenario_state(&self) -> Option<&str> {
         self.new_scenario_state.as_ref().map(|state| state.as_str())
-	}
+    }
 
-	pub fn set_new_scenario_state<S>(&mut self, new_scenario_state: S) where S: Into<String> {
-		self.new_scenario_state = Some(new_scenario_state.into());
-	}
+    pub fn set_new_scenario_state<S>(&mut self, new_scenario_state: S) where S: Into<String> {
+        self.new_scenario_state = Some(new_scenario_state.into());
+    }
 
-	pub fn is_in_scenario(&self) -> bool {
-		self.scenario_name.is_some()
-	}
+    pub fn is_in_scenario(&self) -> bool {
+        self.scenario_name.is_some()
+    }
 
-	pub fn modifies_scenario_state(&self) -> bool {
-		self.new_scenario_state.is_some()
-	}
+    pub fn modifies_scenario_state(&self) -> bool {
+        self.new_scenario_state.is_some()
+    }
 
     pub fn is_independent_of_scenario_state(&self) -> bool {
         !self.is_in_scenario() || self.required_scenario_state.is_none()
-	}
+    }
 
     pub fn post_serve_actions(&self) -> &IndexMap<String, Parameters> {
         &self.post_serve_actions
@@ -164,10 +164,4 @@ impl From<ScenarioMappingBuilder> for StubMapping {
     fn from(builder: ScenarioMappingBuilder) -> StubMapping {
         builder.build()
     }
-}
-
-pub struct Scenario;
-
-impl Scenario {
-    pub const STARTED: &'static str = "Started";
 }

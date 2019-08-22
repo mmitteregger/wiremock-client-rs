@@ -9,6 +9,7 @@ pub struct PageParams {
 
 pub trait PaginatedResult<T>: Debug + Serialize + Deserialize<'static> {
     fn selection(&self) -> &[T];
+    fn selection_mut(&mut self) -> &mut Vec<T>;
     fn meta(&self) -> &Meta;
 }
 

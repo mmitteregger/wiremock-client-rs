@@ -13,7 +13,7 @@ mod builder;
 pub struct RequestPattern {
     /// The url pattern to match exactly against.
     #[serde(flatten)]
-    pub(crate) url_pattern: UrlPattern,
+    pub(crate) url_pattern: Option<UrlPattern>,
     /// The HTTP request method e.g. GET
     pub(crate) method: RequestMethod,
     /// Query parameter patterns to match against.
@@ -34,8 +34,8 @@ pub struct RequestPattern {
 }
 
 impl RequestPattern {
-    pub fn url_pattern(&self) -> &UrlPattern {
-        &self.url_pattern
+    pub fn url_pattern(&self) -> Option<&UrlPattern> {
+        self.url_pattern.as_ref()
     }
 
     pub fn method(&self) -> &RequestMethod {

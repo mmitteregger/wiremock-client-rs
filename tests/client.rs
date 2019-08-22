@@ -203,6 +203,13 @@ fn reset_to_default_mappings() {
 }
 
 #[test]
+fn get_serve_events() {
+    let wire_mock = create_wire_mock();
+    let serve_events = wire_mock.get_serve_events().unwrap();
+    print_json_value(&serve_events);
+}
+
+#[test]
 #[ignore = "updating the global settings my interere with other tests"]
 fn update_and_reset_global_settings() {
     let wire_mock = create_wire_mock();
