@@ -144,6 +144,11 @@ impl WireMock {
             })
     }
 
+    pub fn save_mappings(&self) -> Result<()> {
+        self.send_empty_request(Method::POST, "/mappings/save")
+            .map(|_| ())
+    }
+
     pub fn reset_all(&self) -> Result<()> {
         self.send_empty_request(Method::POST, "/reset")
             .map(|_| ())

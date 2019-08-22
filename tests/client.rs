@@ -139,6 +139,9 @@ fn get_stub_mapping() {
 
     let opt_stub_mapping = wire_mock.get_stub_mapping(stub_mapping.id()).unwrap();
     assert_eq!(opt_stub_mapping.unwrap().id(), stub_mapping.id());
+
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(stub_mapping.id()).unwrap();
+    assert_eq!(stub_mapping_removed, true);
 }
 
 #[test]
@@ -147,6 +150,14 @@ fn get_non_existent_stub_mapping() {
 
     let opt_stub_mapping = wire_mock.get_stub_mapping(&Uuid::new_v4()).unwrap();
     assert!(opt_stub_mapping.is_none());
+}
+
+#[test]
+#[ignore = "random stub mappings (created while other tests run) shouldn't be persisted to disk"]
+fn save_mappings() {
+    let wire_mock = create_wire_mock();
+
+    wire_mock.save_mappings().unwrap();
 }
 
 #[test]
