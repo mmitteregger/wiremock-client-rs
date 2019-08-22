@@ -10,8 +10,8 @@ pub use dsl::*;
 
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
-use crate::http::Result;
-use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult};
+use crate::http::{Result, Error};
+use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult, SingleServedStubResult};
 use crate::security::ClientAuthenticator;
 use crate::stubbing::{StubMapping, ServeEvent};
 
@@ -112,15 +112,7 @@ impl WireMock {
     pub fn remove_stub_mapping(&self, id: &Uuid) -> Result<bool> {
         self.send_empty_request(Method::DELETE, &format!("/mappings/{}", id))
             .map(|_| true)
-            .or_else(|error| {
-                if let Some(status_code) = error.status() {
-                    if status_code == StatusCode::NOT_FOUND {
-                        return Ok(false);
-                    }
-                }
-
-                Err(error)
-            })
+            .or_else(|error| map_not_found_error_to(error, false))
     }
 
     pub fn list_all_stub_mappings(&self) -> Result<ListStubMappingsResult> {
@@ -132,15 +124,7 @@ impl WireMock {
         self.send_empty_request(Method::GET, &format!("/mappings/{}", id))
             .and_then(|mut response| response.json::<SingleStubMappingResult>())
             .map(|result| Some(result.into()))
-            .or_else(|error| {
-                if let Some(status_code) = error.status() {
-                    if status_code == StatusCode::NOT_FOUND {
-                        return Ok(None);
-                    }
-                }
-
-                Err(error)
-            })
+            .or_else(map_not_found_error_to_none)
     }
 
     pub fn save_mappings(&self) -> Result<()> {
@@ -177,6 +161,13 @@ impl WireMock {
         self.send_empty_request(Method::GET, "/requests")
             .and_then(|mut response| response.json::<GetServeEventsResult>())
             .map(|result| result.into())
+    }
+
+    pub fn get_served_stub(&self, id: &Uuid) -> Result<Option<ServeEvent>> {
+        self.send_empty_request(Method::GET, &format!("/requests/{}", id))
+            .and_then(|mut response| response.json::<SingleServedStubResult>())
+            .map(|result| Some(result.into()))
+            .or_else(map_not_found_error_to_none)
     }
 
     pub fn shutdown_server(&self) -> Result<()> {
@@ -228,6 +219,20 @@ impl WireMock {
 
         request
     }
+}
+
+fn map_not_found_error_to_none<T>(error: Error) -> Result<Option<T>> {
+    map_not_found_error_to(error, None)
+}
+
+fn map_not_found_error_to<T>(error: Error, value_on_not_found_error: T) -> Result<T> {
+    if let Some(status_code) = error.status() {
+        if status_code == StatusCode::NOT_FOUND {
+            return Ok(value_on_not_found_error);
+        }
+    }
+
+    Err(error)
 }
 
 #[cfg(test)]

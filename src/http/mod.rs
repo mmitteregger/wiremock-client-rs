@@ -20,3 +20,4 @@ mod multi_value;
 mod logged_response;
 
 pub type Result<T> = reqwest::Result<T>;
+pub type Error = reqwest::Error;

@@ -210,6 +210,24 @@ fn get_serve_events() {
 }
 
 #[test]
+fn get_served_stub() {
+    let wire_mock = create_wire_mock();
+
+    reqwest::Client::new()
+        .post("http://localhost:8181/some/thing")
+        .body("Hello")
+        .send()
+        .unwrap();
+
+    let serve_event = &wire_mock.get_serve_events().unwrap()[0];
+
+    let opt_serve_event = wire_mock.get_served_stub(serve_event.id()).unwrap();
+    assert!(opt_serve_event.is_some());
+
+    print_json_value(&opt_serve_event.unwrap());
+}
+
+#[test]
 #[ignore = "updating the global settings my interere with other tests"]
 fn update_and_reset_global_settings() {
     let wire_mock = create_wire_mock();
