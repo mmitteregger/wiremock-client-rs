@@ -30,6 +30,12 @@ impl From<&str> for UrlPattern {
     }
 }
 
+impl From<&String> for UrlPattern {
+    fn from(url: &String) -> UrlPattern {
+        UrlPattern::Url(url.clone())
+    }
+}
+
 impl From<String> for UrlPattern {
     fn from(url: String) -> UrlPattern {
         UrlPattern::Url(url)

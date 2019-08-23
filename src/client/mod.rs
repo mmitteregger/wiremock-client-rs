@@ -16,7 +16,7 @@ use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMa
 use crate::security::ClientAuthenticator;
 use crate::stubbing::{StubMapping, ServeEvent};
 use crate::matching::RequestPattern;
-use crate::verification::{VerificationResult, FindRequestsResult, LoggedRequest, JournalBasedResult};
+use crate::verification::{VerificationResult, FindRequestsResult, LoggedRequest, JournalBasedResult, FindNearMissesResult, NearMiss};
 
 pub(crate) mod builder;
 mod credentials;
@@ -73,7 +73,6 @@ impl WireMock {
 //    router.add(GET,  "/recordings/status", GetRecordingStatusTask.class);
 //    router.add(GET,  "/recorder", GetRecordingsIndexTask.class);
 //
-//    router.add(POST, "/near-misses/request", FindNearMissesForRequestTask.class);
 //    router.add(POST, "/near-misses/request-pattern", FindNearMissesForRequestPatternTask.class);
 //
 //    router.add(PATCH, "/settings/extended", PatchExtendedSettingsTask.class);
@@ -208,6 +207,18 @@ impl WireMock {
             .and_then(|find_requests_result| {
                 find_requests_result.assert_request_journal_enabled();
                 Ok(find_requests_result.into())
+            })
+    }
+
+    pub fn find_top_near_misses_for(&self, logged_request: &LoggedRequest) -> Result<FindNearMissesResult> {
+        self.send_json_request(Method::POST, "/near-misses/request", logged_request)
+            .and_then(|mut response| response.json::<FindNearMissesResult>())
+    }
+
+    pub fn find_near_misses_for(&self, logged_request: &LoggedRequest) -> Result<Vec<NearMiss>> {
+        self.find_top_near_misses_for(logged_request)
+            .map(|find_near_misses_result| {
+                find_near_misses_result.into()
             })
     }
 

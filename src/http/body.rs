@@ -23,6 +23,12 @@ impl From<&str> for Body {
     }
 }
 
+impl From<&String> for Body {
+    fn from(body: &String) -> Body {
+        Body::String(body.clone())
+    }
+}
+
 impl From<String> for Body {
     fn from(body: String) -> Body {
         Body::String(body)

@@ -15,9 +15,6 @@ impl FindRequestsResult {
     pub fn requests(&self) -> &[LoggedRequest] {
         &self.requests
     }
-    pub fn requests_mut(&mut self) -> &mut Vec<LoggedRequest> {
-        &mut self.requests
-    }
 }
 
 impl JournalBasedResult for FindRequestsResult {

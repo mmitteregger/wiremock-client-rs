@@ -285,6 +285,30 @@ fn find_no_requests_matching() {
 }
 
 #[test]
+fn find_near_misses_for() {
+    let wire_mock = create_wire_mock();
+
+    let url = format!("/test-find-near-misses-for/{}", Uuid::new_v4());
+
+    let stub_mapping = wire_mock.stub_for(get(&url)).unwrap();
+
+    reqwest::Client::new()
+        .post(&format!("http://localhost:8181{}", &url))
+        .send()
+        .unwrap();
+
+    let logged_requests = wire_mock.find_unmatched().unwrap();
+
+    let near_misses = wire_mock.find_near_misses_for(&logged_requests[0]).unwrap();
+    print_json_value(&near_misses);
+
+    let stub_mapping_removed = wire_mock.remove_stub_mapping(stub_mapping.id()).unwrap();
+    assert_eq!(stub_mapping_removed, true);
+
+    assert!(!near_misses.is_empty());
+}
+
+#[test]
 fn find_unmatched_requests() {
     let wire_mock = create_wire_mock();
 
