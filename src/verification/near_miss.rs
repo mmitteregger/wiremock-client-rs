@@ -7,9 +7,9 @@ use crate::matching::{RequestPattern, MatchResult};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NearMiss {
     request: LoggedRequest,
-    #[serde(rename = "stubMapping")]
-    stub_mapping: StubMapping,
-    #[serde(rename = "requestPattern")]
+    #[serde(rename = "stubMapping", skip_serializing_if = "Option::is_none")]
+    stub_mapping: Option<StubMapping>,
+    #[serde(rename = "requestPattern", skip_serializing_if = "Option::is_none")]
     request_pattern: Option<RequestPattern>,
     #[serde(rename = "matchResult")]
     match_result: MatchResult,
@@ -19,8 +19,8 @@ impl NearMiss {
     pub fn request(&self) -> &LoggedRequest {
         &self.request
     }
-    pub fn stub_mapping(&self) -> &StubMapping {
-        &self.stub_mapping
+    pub fn stub_mapping(&self) -> Option<&StubMapping> {
+        self.stub_mapping.as_ref()
     }
     pub fn request_pattern(&self) -> Option<&RequestPattern> {
         self.request_pattern.as_ref()

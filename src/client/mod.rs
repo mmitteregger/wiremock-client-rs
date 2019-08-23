@@ -73,8 +73,6 @@ impl WireMock {
 //    router.add(GET,  "/recordings/status", GetRecordingStatusTask.class);
 //    router.add(GET,  "/recorder", GetRecordingsIndexTask.class);
 //
-//    router.add(POST, "/near-misses/request-pattern", FindNearMissesForRequestPatternTask.class);
-//
 //    router.add(PATCH, "/settings/extended", PatchExtendedSettingsTask.class);
 //
 //    router.add(POST, "/shutdown", ShutdownServerTask.class);
@@ -210,13 +208,29 @@ impl WireMock {
             })
     }
 
-    pub fn find_top_near_misses_for(&self, logged_request: &LoggedRequest) -> Result<FindNearMissesResult> {
+    pub fn find_top_near_misses_for_request(&self, logged_request: &LoggedRequest) -> Result<FindNearMissesResult> {
         self.send_json_request(Method::POST, "/near-misses/request", logged_request)
             .and_then(|mut response| response.json::<FindNearMissesResult>())
     }
 
-    pub fn find_near_misses_for(&self, logged_request: &LoggedRequest) -> Result<Vec<NearMiss>> {
-        self.find_top_near_misses_for(logged_request)
+    pub fn find_near_misses_for_request(&self, logged_request: &LoggedRequest) -> Result<Vec<NearMiss>> {
+        self.find_top_near_misses_for_request(logged_request)
+            .map(|find_near_misses_result| {
+                find_near_misses_result.into()
+            })
+    }
+
+    pub fn find_top_near_misses_for<'a, P>(&self, request_pattern: P) -> Result<FindNearMissesResult>
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+        self.send_json_request(Method::POST, "/near-misses/request-pattern", &request_pattern.into())
+            .and_then(|mut response| response.json::<FindNearMissesResult>())
+    }
+
+    pub fn find_near_misses_for<'a, P>(&self, request_pattern: P) -> Result<Vec<NearMiss>>
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+        self.find_top_near_misses_for(request_pattern)
             .map(|find_near_misses_result| {
                 find_near_misses_result.into()
             })
