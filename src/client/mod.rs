@@ -206,6 +206,19 @@ impl WireMock {
             })
     }
 
+    pub fn find_unmatched_requests(&self) -> Result<FindRequestsResult> {
+        self.send_empty_request(Method::GET, "/requests/unmatched")
+            .and_then(|mut response| response.json::<FindRequestsResult>())
+    }
+
+    pub fn find_unmatched(&self) -> Result<Vec<LoggedRequest>> {
+        self.find_unmatched_requests()
+            .and_then(|find_requests_result| {
+                find_requests_result.assert_request_journal_enabled();
+                Ok(find_requests_result.into())
+            })
+    }
+
     pub fn shutdown_server(&self) -> Result<()> {
         self.send_empty_request(Method::POST, "/shutdown")
             .map(|_| ())

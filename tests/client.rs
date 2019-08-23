@@ -285,6 +285,24 @@ fn find_no_requests_matching() {
 }
 
 #[test]
+fn find_unmatched_requests() {
+    let wire_mock = create_wire_mock();
+
+    let result = wire_mock.find_unmatched_requests().unwrap();
+    print_json_value(&result);
+
+    result.assert_request_journal_enabled();
+}
+
+#[test]
+fn find_unmatched() {
+    let wire_mock = create_wire_mock();
+
+    let logged_requests = wire_mock.find_unmatched().unwrap();
+    print_json_value(&logged_requests);
+}
+
+#[test]
 #[ignore = "updating the global settings my interere with other tests"]
 fn update_and_reset_global_settings() {
     let wire_mock = create_wire_mock();
