@@ -1,0 +1,33 @@
+language: rust
+rust:
+  # Minimum Rust supported channel to make sure the project continues to work on the advertised minimum version.
+  - 1.37.0
+  - beta
+  - nightly
+
+# Install and start WireMock for integration tests
+addons:
+  apt:
+    packages:
+      - openjdk-8-jdk
+      - maven
+before_script:
+  - >-
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:get
+    -DgroupId=com.github.tomakehurst
+    -DartifactId=wiremock-standalone
+    -Dversion=2.24.1
+    -Dpackaging=jar
+    -Dtransitive=false
+  - >-
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:get
+    -DgroupId=org.slf4j
+    -DartifactId=slf4j-nop
+    -Dversion=1.7.28
+    -Dpackaging=jar
+    -Dtransitive=false
+  - >-
+    java -cp "$HOME/.m2/repository/com/github/tomakehurst/wiremock-standalone/2.24.1/wiremock-standalone-2.24.1.jar:$HOME/.m2/repository/org/slf4j/slf4j-nop/1.7.28/slf4j-nop-1.7.28.jar"
+    com.github.tomakehurst.wiremock.standalone.WireMockServerRunner
+    --port 8181
+    &
