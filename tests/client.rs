@@ -331,6 +331,23 @@ fn find_near_misses_for() {
 }
 
 #[test]
+fn find_near_misses_for_unmatched_requests() {
+    let wire_mock = create_wire_mock();
+
+    let url = format!("/test-find-near-misses-for-unmatched-requests/{}", Uuid::new_v4());
+
+    reqwest::Client::new()
+        .post(&format!("http://localhost:8181{}", &url))
+        .send()
+        .unwrap();
+
+    let near_misses = wire_mock.find_near_misses_for_unmatched_requests().unwrap();
+    print_json_value(&near_misses);
+
+    assert!(!near_misses.is_empty());
+}
+
+#[test]
 fn find_unmatched_requests() {
     let wire_mock = create_wire_mock();
 

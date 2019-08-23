@@ -64,7 +64,6 @@ impl WireMock {
 //    router.add(GET, "/scenarios", GetAllScenariosTask.class);
 //    router.add(POST, "/scenarios/reset", ResetScenariosTask.class);
 //
-//    router.add(GET,  "/requests/unmatched/near-misses", FindNearMissesForUnmatchedTask.class);
 //    router.add(GET,  "/requests/{id}", GetServedStubTask.class);
 //
 //    router.add(POST, "/recordings/snapshot", SnapshotTask.class);
@@ -234,6 +233,16 @@ impl WireMock {
             .map(|find_near_misses_result| {
                 find_near_misses_result.into()
             })
+    }
+
+    pub fn find_top_near_misses_for_unmatched_requests(&self) -> Result<FindNearMissesResult> {
+        self.send_empty_request(Method::GET, "/requests/unmatched/near-misses")
+            .and_then(|mut response| response.json::<FindNearMissesResult>())
+    }
+
+    pub fn find_near_misses_for_unmatched_requests(&self) -> Result<Vec<NearMiss>> {
+        self.find_top_near_misses_for_unmatched_requests()
+            .map(FindNearMissesResult::into)
     }
 
     pub fn shutdown_server(&self) -> Result<()> {
