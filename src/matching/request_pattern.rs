@@ -43,24 +43,12 @@ impl RequestPattern {
         &self.query_params
     }
 
-    pub fn query_params_mut(&mut self) -> &mut IndexMap<String, ContentPattern> {
-        &mut self.query_params
-    }
-
     pub fn headers(&self) -> &IndexMap<String, ContentPattern> {
         &self.headers
     }
 
-    pub fn headers_mut(&mut self) -> &mut IndexMap<String, ContentPattern> {
-        &mut self.headers
-    }
-
     pub fn cookies(&self) -> &IndexMap<String, ContentPattern> {
         &self.cookies
-    }
-
-    pub fn cookies_mut(&mut self) -> &mut IndexMap<String, ContentPattern> {
-        &mut self.cookies
     }
 
     pub fn basic_auth_credentials(&self) -> Option<&BasicCredentials> {
@@ -69,10 +57,6 @@ impl RequestPattern {
 
     pub fn body_patterns(&self) -> &[ContentPattern] {
         &self.body_patterns
-    }
-
-    pub fn body_patterns_mut(&mut self) -> &mut Vec<ContentPattern> {
-        &mut self.body_patterns
     }
 }
 

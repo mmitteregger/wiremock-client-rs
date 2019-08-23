@@ -12,9 +12,9 @@ pub use dsl::*;
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
 use crate::http::{Result, Error};
-use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult, SingleServedStubResult};
+use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult, SingleServedStubResult, GetScenariosResult};
 use crate::security::ClientAuthenticator;
-use crate::stubbing::{StubMapping, ServeEvent};
+use crate::stubbing::{StubMapping, ServeEvent, Scenario};
 use crate::matching::RequestPattern;
 use crate::verification::{VerificationResult, FindRequestsResult, LoggedRequest, JournalBasedResult, FindNearMissesResult, NearMiss};
 
@@ -60,9 +60,6 @@ impl WireMock {
 //    router.add(GET, "/files", GetAllStubFilesTask.class);
 //    router.add(PUT, "/files/{filename}", EditStubFileTask.class);
 //    router.add(DELETE, "/files/{filename}", DeleteStubFileTask.class);
-//
-//    router.add(GET, "/scenarios", GetAllScenariosTask.class);
-//    router.add(POST, "/scenarios/reset", ResetScenariosTask.class);
 //
 //    router.add(GET,  "/requests/{id}", GetServedStubTask.class);
 //
@@ -214,9 +211,7 @@ impl WireMock {
 
     pub fn find_near_misses_for_request(&self, logged_request: &LoggedRequest) -> Result<Vec<NearMiss>> {
         self.find_top_near_misses_for_request(logged_request)
-            .map(|find_near_misses_result| {
-                find_near_misses_result.into()
-            })
+            .map(FindNearMissesResult::into)
     }
 
     pub fn find_top_near_misses_for<'a, P>(&self, request_pattern: P) -> Result<FindNearMissesResult>
@@ -230,9 +225,7 @@ impl WireMock {
         where P: Into<Cow<'a, RequestPattern>>,
     {
         self.find_top_near_misses_for(request_pattern)
-            .map(|find_near_misses_result| {
-                find_near_misses_result.into()
-            })
+            .map(FindNearMissesResult::into)
     }
 
     pub fn find_top_near_misses_for_unmatched_requests(&self) -> Result<FindNearMissesResult> {
@@ -243,6 +236,16 @@ impl WireMock {
     pub fn find_near_misses_for_unmatched_requests(&self) -> Result<Vec<NearMiss>> {
         self.find_top_near_misses_for_unmatched_requests()
             .map(FindNearMissesResult::into)
+    }
+
+    pub fn get_all_scenarios(&self) -> Result<GetScenariosResult> {
+        self.send_empty_request(Method::GET, "/scenarios")
+            .and_then(|mut response| response.json::<GetScenariosResult>())
+    }
+
+    pub fn get_scenarios(&self) -> Result<Vec<Scenario>> {
+        self.get_all_scenarios()
+            .map(GetScenariosResult::into)
     }
 
     pub fn shutdown_server(&self) -> Result<()> {

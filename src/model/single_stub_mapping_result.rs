@@ -13,10 +13,6 @@ impl SingleItemResult<StubMapping> for SingleStubMappingResult {
     fn item(&self) -> &StubMapping {
         &self.stub_mapping
     }
-
-    fn item_mut(&mut self) -> &mut StubMapping {
-        &mut self.stub_mapping
-    }
 }
 
 impl Into<StubMapping> for SingleStubMappingResult {

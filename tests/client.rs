@@ -1,9 +1,10 @@
 use uuid::Uuid;
 
-use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder, any_url, any, post_requested_for};
+use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder, any_url, any, post_requested_for, post};
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
 use wiremock_client::verification::JournalBasedResult;
+use wiremock_client::stubbing::Scenario;
 
 macro_rules! string_json_map {
     (@single $($x:tt)*) => (());
@@ -363,6 +364,52 @@ fn find_unmatched() {
 
     let logged_requests = wire_mock.find_unmatched().unwrap();
     print_json_value(&logged_requests);
+}
+
+#[test]
+fn get_scenarios() {
+    let wire_mock = create_wire_mock();
+
+    let list_before_add_stub = wire_mock.stub_for(get(url_equal_to("/todo/items"))
+        .in_scenario("To do list")
+        .when_scenario_state_is(Scenario::STARTED)
+        .will_return(a_response()
+            .with_body("<items>".to_string() +
+                "   <item>Buy milk</item>" +
+                "</items>")))
+        .unwrap();
+
+    let add_stub = wire_mock.stub_for(post(url_equal_to("/todo/items"))
+        .in_scenario("To do list")
+        .when_scenario_state_is(Scenario::STARTED)
+        .with_request_body(containing("Cancel newspaper subscription"))
+        .will_return(a_response().with_status(201))
+        .will_set_state_to("Cancel newspaper item added"))
+        .unwrap();
+
+    let list_after_add_stub = wire_mock.stub_for(get(url_equal_to("/todo/items"))
+        .in_scenario("To do list")
+        .when_scenario_state_is("Cancel newspaper item added")
+        .will_return(a_response()
+            .with_body("<items>".to_string() +
+                "   <item>Buy milk</item>" +
+                "   <item>Cancel newspaper subscription</item>" +
+                "</items>")))
+        .unwrap();
+
+    let scenarios = wire_mock.get_scenarios().unwrap();
+    print_json_value(&scenarios);
+
+    assert_eq!(wire_mock.remove_stub_mapping(list_before_add_stub.id()).unwrap(), true);
+    assert_eq!(wire_mock.remove_stub_mapping(add_stub.id()).unwrap(), true);
+    assert_eq!(wire_mock.remove_stub_mapping(list_after_add_stub.id()).unwrap(), true);
+
+    let to_do_list_scenario = scenarios.iter()
+        .find(|scenario| scenario.name() == "To do list")
+        .unwrap();
+    assert_eq!(to_do_list_scenario.possible_states().len(), 2);
+    assert!(to_do_list_scenario.possible_states().contains(Scenario::STARTED));
+    assert!(to_do_list_scenario.possible_states().contains("Cancel newspaper item added"));
 }
 
 #[test]

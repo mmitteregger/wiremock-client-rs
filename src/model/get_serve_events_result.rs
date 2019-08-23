@@ -16,10 +16,6 @@ impl PaginatedResult<ServeEvent> for GetServeEventsResult {
         &self.requests
     }
 
-    fn selection_mut(&mut self) -> &mut Vec<ServeEvent> {
-        &mut self.requests
-    }
-
     fn meta(&self) -> &Meta {
         &self.meta
     }
@@ -28,10 +24,6 @@ impl PaginatedResult<ServeEvent> for GetServeEventsResult {
 impl GetServeEventsResult {
     pub fn serve_events(&self) -> &[ServeEvent] {
         &self.requests
-    }
-
-    pub fn serve_events_mut(&mut self) -> &mut Vec<ServeEvent> {
-        &mut self.requests
     }
 }
 

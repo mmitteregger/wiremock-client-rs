@@ -13,10 +13,6 @@ impl SingleItemResult<ServeEvent> for SingleServedStubResult {
     fn item(&self) -> &ServeEvent {
         &self.serve_event
     }
-
-    fn item_mut(&mut self) -> &mut ServeEvent {
-        &mut self.serve_event
-    }
 }
 
 impl Into<ServeEvent> for SingleServedStubResult {

@@ -57,10 +57,6 @@ impl ResponseDefinition {
         &self.headers
     }
 
-    pub fn headers_mut(&mut self) -> &mut HeaderMap {
-        &mut self.headers
-    }
-
     pub fn fixed_delay_milliseconds(&self) -> Option<u32> {
         self.fixed_delay_milliseconds
     }
@@ -81,16 +77,8 @@ impl ResponseDefinition {
         &self.transformers
     }
 
-    pub fn transformers_mut(&mut self) -> &mut Vec<String> {
-        &mut self.transformers
-    }
-
     pub fn transformer_parameters(&self) -> &Parameters {
         &self.transformer_parameters
-    }
-
-    pub fn transformer_parameters_mut(&mut self) -> &mut Parameters {
-        &mut self.transformer_parameters
     }
 }
 
