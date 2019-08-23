@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use http::{Method, StatusCode};
 use reqwest::{RequestBuilder, Response};
 use http::HeaderValue;
@@ -171,8 +172,10 @@ impl WireMock {
             .or_else(map_not_found_error_to_none)
     }
 
-    pub fn count_requests_matching(&self, request_pattern: &RequestPattern) -> Result<VerificationResult> {
-        self.send_json_request(Method::POST, "/requests/count", request_pattern)
+    pub fn count_requests_matching<'a, P>(&self, request_pattern: P) -> Result<VerificationResult>
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+        self.send_json_request(Method::POST, "/requests/count", &request_pattern.into())
             .and_then(|mut response| response.json::<VerificationResult>())
     }
 
@@ -506,6 +509,25 @@ mod compile_only_dsl_examples {
         stub_for(proxy_all_to("http://my.example.com"));
     }
 
+    #[test]
+    #[ignore = "this is a test that only checks if the code compiles"]
+    fn count_requests_matching_with_borrowed_request_pattern() {
+        let request = get_requested_for(any_url()).build();
+        WireMock::default().count_requests_matching(&request).unwrap();
+    }
+
+    #[test]
+    #[ignore = "this is a test that only checks if the code compiles"]
+    fn count_requests_matching_with_owned_request_pattern() {
+        let request = get_requested_for(any_url()).build();
+        WireMock::default().count_requests_matching(request).unwrap();
+    }
+
+    #[test]
+    #[ignore = "this is a test that only checks if the code compiles"]
+    fn count_requests_matching_with_owned_request_pattern_builder() {
+        WireMock::default().count_requests_matching(get_requested_for(any_url())).unwrap();
+    }
 
     fn stub_for<S: Into<StubMapping>>(stub_mapping: S) {
         let wire_mock = WireMock::default();

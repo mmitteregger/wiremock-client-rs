@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use indexmap::IndexMap;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum ContentPattern {
     Absent(AbsentPattern),
@@ -25,7 +25,7 @@ pub trait StringValuePattern: Debug + Serialize + Deserialize<'static> + Into<Co
     fn value(&self) -> &str;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AbsentPattern {
     absent: String,
 }
@@ -50,7 +50,7 @@ impl Into<ContentPattern> for AbsentPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnythingPattern {
     anything: String,
 }
@@ -75,7 +75,7 @@ impl Into<ContentPattern> for AnythingPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BinaryEqualToPattern {
     /// Base64 encoded string.
     #[serde(rename = "binaryEqualTo", with = "crate::serde::base64")]
@@ -96,7 +96,7 @@ impl Into<ContentPattern> for BinaryEqualToPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContainsPattern {
     contains: String,
 }
@@ -121,7 +121,7 @@ impl Into<ContentPattern> for ContainsPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EqualToJsonPattern {
     #[serde(rename = "equalToJson")]
     equal_to_json: String,
@@ -163,7 +163,7 @@ impl Into<ContentPattern> for EqualToJsonPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EqualToPattern {
     #[serde(rename = "equalTo")]
     equal_to: String,
@@ -197,7 +197,7 @@ impl Into<ContentPattern> for EqualToPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EqualToXmlPattern {
     #[serde(rename = "equalToXml")]
     equal_to_xml: String,
@@ -245,7 +245,7 @@ impl Into<ContentPattern> for EqualToXmlPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MatchesJsonPathPattern {
     #[serde(rename = "matchesJsonPath")]
     matches_json_path: String,
@@ -271,7 +271,7 @@ impl Into<ContentPattern> for MatchesJsonPathPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MatchesXPathPattern {
     #[serde(rename = "matchesXPath")]
     matches_xpath: String,
@@ -307,7 +307,7 @@ impl Into<ContentPattern> for MatchesXPathPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegexPattern {
     matches: String,
 }
@@ -332,7 +332,7 @@ impl Into<ContentPattern> for RegexPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NegativeRegexPattern {
     #[serde(rename = "doesNotMatch")]
     does_not_match: String,

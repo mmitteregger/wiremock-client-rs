@@ -236,8 +236,7 @@ fn count_requests_matching() {
         .send()
         .unwrap();
 
-    let request = post_requested_for("/some/thing").build();
-    let result = wire_mock.count_requests_matching(&request).unwrap();
+    let result = wire_mock.count_requests_matching(post_requested_for("/some/thing")).unwrap();
     print_json_value(&result);
 
     assert_eq!(result.request_journal_disabled(), false);
@@ -248,10 +247,8 @@ fn count_requests_matching() {
 fn count_no_requests_matching() {
     let wire_mock = create_wire_mock();
 
-    let request = get_requested_for(format!("/{}", Uuid::new_v4()))
-        .with_header(format!("X-{}", Uuid::new_v4()), equal_to(Uuid::new_v4().to_string()))
-        .build();
-    let result = wire_mock.count_requests_matching(&request).unwrap();
+    let result = wire_mock.count_requests_matching(get_requested_for(format!("/{}", Uuid::new_v4()))
+        .with_header(format!("X-{}", Uuid::new_v4()), equal_to(Uuid::new_v4().to_string()))).unwrap();
     print_json_value(&result);
 
     assert_eq!(result.request_journal_disabled(), false);

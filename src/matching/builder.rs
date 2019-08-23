@@ -1,6 +1,8 @@
+use std::borrow::Cow;
+use indexmap::IndexMap;
+
 use crate::matching::{UrlPattern, ContentPattern, RequestPattern, StringValuePattern, AbsentPattern};
 use crate::http::RequestMethod;
-use indexmap::IndexMap;
 use crate::BasicCredentials;
 
 pub struct RequestPatternBuilder {
@@ -130,5 +132,11 @@ impl RequestPatternBuilder {
             basic_auth_credentials: self.basic_credentials,
             body_patterns: self.body_patterns,
         }
+    }
+}
+
+impl<'a> From<RequestPatternBuilder> for Cow<'a, RequestPattern> {
+    fn from(builder: RequestPatternBuilder) -> Self {
+        Cow::Owned(builder.build())
     }
 }
