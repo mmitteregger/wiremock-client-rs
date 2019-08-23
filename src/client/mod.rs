@@ -16,7 +16,7 @@ use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMa
 use crate::security::ClientAuthenticator;
 use crate::stubbing::{StubMapping, ServeEvent};
 use crate::matching::RequestPattern;
-use crate::verification::VerificationResult;
+use crate::verification::{VerificationResult, FindRequestsResult, LoggedRequest, JournalBasedResult};
 
 pub(crate) mod builder;
 mod credentials;
@@ -177,6 +177,33 @@ impl WireMock {
     {
         self.send_json_request(Method::POST, "/requests/count", &request_pattern.into())
             .and_then(|mut response| response.json::<VerificationResult>())
+    }
+
+    pub fn count<'a, P>(&self, request_pattern: P) -> Result<u32>
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+        self.count_requests_matching(request_pattern)
+            .and_then(|verification_result| {
+                verification_result.assert_request_journal_enabled();
+                Ok(verification_result.count().unwrap())
+            })
+    }
+
+    pub fn find_requests_matching<'a, P>(&self, request_pattern: P) -> Result<FindRequestsResult>
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+        self.send_json_request(Method::POST, "/requests/find", &request_pattern.into())
+            .and_then(|mut response| response.json::<FindRequestsResult>())
+    }
+
+    pub fn find<'a, P>(&self, request_pattern: P) -> Result<Vec<LoggedRequest>>
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+        self.find_requests_matching(request_pattern)
+            .and_then(|find_requests_result| {
+                find_requests_result.assert_request_journal_enabled();
+                Ok(find_requests_result.into())
+            })
     }
 
     pub fn shutdown_server(&self) -> Result<()> {
@@ -527,6 +554,26 @@ mod compile_only_dsl_examples {
     #[ignore = "this is a test that only checks if the code compiles"]
     fn count_requests_matching_with_owned_request_pattern_builder() {
         WireMock::default().count_requests_matching(get_requested_for(any_url())).unwrap();
+    }
+
+    #[test]
+    #[ignore = "this is a test that only checks if the code compiles"]
+    fn find_requests_matching_with_borrowed_request_pattern() {
+        let request = get_requested_for(any_url()).build();
+        WireMock::default().find_requests_matching(&request).unwrap();
+    }
+
+    #[test]
+    #[ignore = "this is a test that only checks if the code compiles"]
+    fn find_requests_matching_with_owned_request_pattern() {
+        let request = get_requested_for(any_url()).build();
+        WireMock::default().find_requests_matching(request).unwrap();
+    }
+
+    #[test]
+    #[ignore = "this is a test that only checks if the code compiles"]
+    fn find_requests_matching_with_owned_request_pattern_builder() {
+        WireMock::default().find_requests_matching(get_requested_for(any_url())).unwrap();
     }
 
     fn stub_for<S: Into<StubMapping>>(stub_mapping: S) {

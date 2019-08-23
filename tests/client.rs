@@ -3,6 +3,7 @@ use uuid::Uuid;
 use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder, any_url, any, post_requested_for};
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
+use wiremock_client::verification::JournalBasedResult;
 
 macro_rules! string_json_map {
     (@single $($x:tt)*) => (());
@@ -239,7 +240,7 @@ fn count_requests_matching() {
     let result = wire_mock.count_requests_matching(post_requested_for("/some/thing")).unwrap();
     print_json_value(&result);
 
-    assert_eq!(result.request_journal_disabled(), false);
+    result.assert_request_journal_enabled();
     assert!(result.count().unwrap() > 0);
 }
 
@@ -251,8 +252,36 @@ fn count_no_requests_matching() {
         .with_header(format!("X-{}", Uuid::new_v4()), equal_to(Uuid::new_v4().to_string()))).unwrap();
     print_json_value(&result);
 
-    assert_eq!(result.request_journal_disabled(), false);
+    result.assert_request_journal_enabled();
     assert_eq!(result.count(), Some(0));
+}
+
+#[test]
+fn find_requests_matching() {
+    let wire_mock = create_wire_mock();
+
+    reqwest::Client::new()
+        .post("http://localhost:8181/some/thing")
+        .send()
+        .unwrap();
+
+    let result = wire_mock.find_requests_matching(post_requested_for("/some/thing")).unwrap();
+    print_json_value(&result);
+
+    result.assert_request_journal_enabled();
+    assert!(!result.requests().is_empty());
+}
+
+#[test]
+fn find_no_requests_matching() {
+    let wire_mock = create_wire_mock();
+
+    let result = wire_mock.find_requests_matching(get_requested_for(format!("/{}", Uuid::new_v4()))
+        .with_header(format!("X-{}", Uuid::new_v4()), equal_to(Uuid::new_v4().to_string()))).unwrap();
+    print_json_value(&result);
+
+    result.assert_request_journal_enabled();
+    assert!(result.requests().is_empty());
 }
 
 #[test]
