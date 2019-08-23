@@ -53,7 +53,6 @@ impl WireMock {
         self.port
     }
 
-//    router.add(POST, "/mappings/save", SaveMappingsTask.class);
 //    router.add(POST, "/mappings/find-by-metadata", FindStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/remove-by-metadata", RemoveStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/import", ImportStubMappingsTask.class);
@@ -65,10 +64,6 @@ impl WireMock {
 //    router.add(GET, "/scenarios", GetAllScenariosTask.class);
 //    router.add(POST, "/scenarios/reset", ResetScenariosTask.class);
 //
-//    router.add(DELETE,  "/requests", ResetRequestsTask.class);
-//    router.add(POST, "/requests/reset", OldResetRequestsTask.class);  // Deprecated
-//    router.add(POST, "/requests/find", FindRequestsTask.class);
-//    router.add(GET,  "/requests/unmatched", FindUnmatchedRequestsTask.class);
 //    router.add(GET,  "/requests/unmatched/near-misses", FindNearMissesForUnmatchedTask.class);
 //    router.add(GET,  "/requests/{id}", GetServedStubTask.class);
 //
@@ -81,9 +76,6 @@ impl WireMock {
 //    router.add(POST, "/near-misses/request", FindNearMissesForRequestTask.class);
 //    router.add(POST, "/near-misses/request-pattern", FindNearMissesForRequestPatternTask.class);
 //
-//    router.add(GET, "/settings", GetGlobalSettingsTask.class);
-//    router.add(PUT, "/settings", GlobalSettingsUpdateTask.class);
-//    router.add(POST, "/settings", GlobalSettingsUpdateTask.class);
 //    router.add(PATCH, "/settings/extended", PatchExtendedSettingsTask.class);
 //
 //    router.add(POST, "/shutdown", ShutdownServerTask.class);
