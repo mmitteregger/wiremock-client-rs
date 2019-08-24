@@ -74,10 +74,21 @@ impl WireMock {
             .map(|_| ())
     }
 
+    pub fn edit_stub<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<StubMapping> {
+        let stub_mapping = stub_mapping.into();
+        self.edit_stub_mapping(&stub_mapping)?;
+        Ok(stub_mapping)
+    }
+
     pub fn remove_stub_mapping(&self, id: &Uuid) -> Result<bool> {
         self.send_empty_request(Method::DELETE, &format!("/mappings/{}", id))
             .map(|_| true)
             .or_else(|error| map_not_found_error_to(error, false))
+    }
+
+    pub fn remove_stub<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<bool> {
+        let stub_mapping = stub_mapping.into();
+        self.remove_stub_mapping(stub_mapping.id())
     }
 
     pub fn list_all_stub_mappings(&self) -> Result<ListStubMappingsResult> {
