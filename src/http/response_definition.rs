@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
 use http::HeaderMap;
+use serde::{Deserialize, Serialize};
 
-use crate::http::{Body, DelayDistribution, Fault, ChunkedDribbleDelay};
+use crate::client::{ProxyResponseDefinitionBuilder, ResponseDefinitionBuilder};
 use crate::extension::Parameters;
-use crate::client::ResponseDefinitionBuilder;
+use crate::http::{Body, ChunkedDribbleDelay, DelayDistribution, Fault};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResponseDefinition {
@@ -18,6 +18,9 @@ pub struct ResponseDefinition {
     /// Map of response headers to send.
     #[serde(default, skip_serializing_if = "HeaderMap::is_empty", with = "crate::serde::header_map")]
     pub(crate) headers: HeaderMap,
+    /// Map of additional response headers to send when proxying.
+    #[serde(rename = "additionalProxyRequestHeaders", default, skip_serializing_if = "HeaderMap::is_empty", with = "crate::serde::header_map")]
+    pub(crate) additional_proxy_request_headers: HeaderMap,
     /// Number of milliseconds to delay be before sending the response.
     #[serde(rename = "fixedDelayMilliseconds", skip_serializing_if = "Option::is_none")]
     pub(crate) fixed_delay_milliseconds: Option<u32>,
@@ -59,6 +62,10 @@ impl ResponseDefinition {
         &self.headers
     }
 
+    pub fn additional_proxy_request_headers(&self) -> &HeaderMap {
+        &self.additional_proxy_request_headers
+    }
+
     pub fn fixed_delay_milliseconds(&self) -> Option<u32> {
         self.fixed_delay_milliseconds
     }
@@ -90,6 +97,12 @@ impl ResponseDefinition {
 
 impl From<ResponseDefinitionBuilder> for ResponseDefinition {
     fn from(builder: ResponseDefinitionBuilder) -> ResponseDefinition {
+        builder.build()
+    }
+}
+
+impl From<ProxyResponseDefinitionBuilder> for ResponseDefinition {
+    fn from(builder: ProxyResponseDefinitionBuilder) -> ResponseDefinition {
         builder.build()
     }
 }
