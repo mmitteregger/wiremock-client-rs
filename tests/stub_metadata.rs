@@ -65,6 +65,27 @@ pub fn can_find_stubs_by_metadata() {
     assert_eq!(retrieved_stub.id(), stub1.id());
 }
 
+#[test]
+pub fn can_remove_stubs_by_metadata() {
+    let wire_mock = create_wire_mock();
+
+    let stub1 = wire_mock.stub_for(get("/with-metadata")
+        .with_id(Uuid::new_v4())
+        .with_metadata(metadata()
+            .attr("can_remove_stubs_by_metadata-four", metadata()
+                .attr("can_remove_stubs_by_metadata-five", "55555")
+            )
+            .list("can_remove_stubs_by_metadata-six", vec![1, 2, 3])
+        )).unwrap();
+    let stub2 = wire_mock.stub_for(get("/without-metadata")).unwrap();
+
+    let json_path = "$..can_remove_stubs_by_metadata-four.can_remove_stubs_by_metadata-five";
+    wire_mock.remove_stubs_by_metadata(matching_json_path(json_path)).unwrap();
+
+    assert_eq!(wire_mock.remove_stub_mapping(stub1.id()).unwrap(), false);
+    assert_eq!(wire_mock.remove_stub_mapping(stub2.id()).unwrap(), true);
+}
+
 
 fn create_wire_mock() -> WireMock {
     WireMockBuilder::new()

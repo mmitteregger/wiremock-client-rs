@@ -54,7 +54,6 @@ impl WireMock {
         self.port
     }
 
-//    router.add(POST, "/mappings/remove-by-metadata", RemoveStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/import", ImportStubMappingsTask.class);
 
     pub fn given_that<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<StubMapping> {
@@ -252,6 +251,14 @@ impl WireMock {
     {
         self.find_all_stubs_by_metadata(pattern)
             .map(ListStubMappingsResult::into)
+    }
+
+    pub fn remove_stubs_by_metadata<P>(&self, pattern: P) -> Result<()>
+        where P: StringValuePattern + Sized,
+    {
+        let content_pattern: ContentPattern = pattern.into();
+        self.send_json_request(Method::POST, "/mappings/remove-by-metadata", &content_pattern)
+            .map(|_| ())
     }
 
     pub fn update_global_settings(&self, global_settings: &GlobalSettings) -> Result<()> {
