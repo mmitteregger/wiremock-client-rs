@@ -23,6 +23,8 @@ pub fn create_and_retrieve_stub_metadata() {
     let retrieved_stub = wire_mock.get_stub_mapping(stub.id())
         .unwrap()
         .unwrap();
+    assert_eq!(wire_mock.remove_stub_mapping(stub.id()).unwrap(), true);
+
     let metadata = retrieved_stub.metadata();
     print_json_value(&metadata);
 
@@ -36,6 +38,31 @@ pub fn create_and_retrieve_stub_metadata() {
 
     let six = metadata.get_mapped_array("six", |value| value.as_u64()).unwrap();
     assert_eq!(six[0], Some(1));
+}
+
+#[test]
+pub fn can_find_stubs_by_metadata() {
+    let wire_mock = create_wire_mock();
+
+    let stub1 = wire_mock.stub_for(get("/with-metadata")
+        .with_id(Uuid::new_v4())
+        .with_metadata(metadata()
+            .attr("can_find_stubs_by_metadata-four", metadata()
+                .attr("can_find_stubs_by_metadata-five", "55555")
+            )
+            .list("can_find_stubs_by_metadata-six", vec![1, 2, 3])
+    )).unwrap();
+    let stub2 = wire_mock.stub_for(get("/without-metadata")).unwrap();
+
+    let json_path = "$..can_find_stubs_by_metadata-four.can_find_stubs_by_metadata-five";
+    let stubs = wire_mock.find_stubs_by_metadata(matching_json_path(json_path)).unwrap();
+    print_json_value(&stubs);
+    assert_eq!(wire_mock.remove_stub_mapping(stub1.id()).unwrap(), true);
+    assert_eq!(wire_mock.remove_stub_mapping(stub2.id()).unwrap(), true);
+
+    assert_eq!(stubs.len(), 1);
+    let retrieved_stub = &stubs[0];
+    assert_eq!(retrieved_stub.id(), stub1.id());
 }
 
 

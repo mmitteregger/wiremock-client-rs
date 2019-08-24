@@ -1,7 +1,8 @@
 use std::borrow::Cow;
+
 use http::{Method, StatusCode};
-use reqwest::{RequestBuilder, Response};
 use http::HeaderValue;
+use reqwest::{RequestBuilder, Response};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -11,12 +12,12 @@ pub use dsl::*;
 
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
-use crate::http::{Result, Error};
-use crate::model::{GetGlobalSettingsResult, ListStubMappingsResult, SingleStubMappingResult, GetServeEventsResult, SingleServedStubResult, GetScenariosResult};
+use crate::http::{Error, Result};
+use crate::matching::{RequestPattern, StringValuePattern, ContentPattern};
+use crate::model::{GetGlobalSettingsResult, GetScenariosResult, GetServeEventsResult, ListStubMappingsResult, SingleServedStubResult, SingleStubMappingResult};
 use crate::security::ClientAuthenticator;
-use crate::stubbing::{StubMapping, ServeEvent, Scenario};
-use crate::matching::RequestPattern;
-use crate::verification::{VerificationResult, FindRequestsResult, LoggedRequest, JournalBasedResult, FindNearMissesResult, NearMiss};
+use crate::stubbing::{Scenario, ServeEvent, StubMapping};
+use crate::verification::{FindNearMissesResult, FindRequestsResult, JournalBasedResult, LoggedRequest, NearMiss, VerificationResult};
 
 pub(crate) mod builder;
 mod credentials;
@@ -53,7 +54,6 @@ impl WireMock {
         self.port
     }
 
-//    router.add(POST, "/mappings/find-by-metadata", FindStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/remove-by-metadata", RemoveStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/import", ImportStubMappingsTask.class);
 
@@ -239,6 +239,21 @@ impl WireMock {
             .map(|_| ())
     }
 
+    pub fn find_all_stubs_by_metadata<P>(&self, pattern: P) -> Result<ListStubMappingsResult>
+        where P: StringValuePattern + Sized,
+    {
+        let content_pattern: ContentPattern = pattern.into();
+        self.send_json_request(Method::POST, "/mappings/find-by-metadata", &content_pattern)
+            .and_then(|mut response| response.json::<ListStubMappingsResult>())
+    }
+
+    pub fn find_stubs_by_metadata<P>(&self, pattern: P) -> Result<Vec<StubMapping>>
+        where P: StringValuePattern + Sized,
+    {
+        self.find_all_stubs_by_metadata(pattern)
+            .map(ListStubMappingsResult::into)
+    }
+
     pub fn update_global_settings(&self, global_settings: &GlobalSettings) -> Result<()> {
         self.send_json_request(Method::POST, "/settings", global_settings)
             .map(|_| ())
@@ -301,9 +316,10 @@ fn map_not_found_error_to<T>(error: Error, value_on_not_found_error: T) -> Resul
 
 #[cfg(test)]
 mod compile_only_dsl_examples {
-    use super::*;
-    use crate::stubbing::Scenario;
     use crate::http::Fault;
+    use crate::stubbing::Scenario;
+
+    use super::*;
 
     #[test]
     #[ignore = "this is a test that only checks if the code compiles"]
