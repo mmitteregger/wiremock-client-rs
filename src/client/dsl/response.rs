@@ -1,4 +1,4 @@
-use http::StatusCode;
+use http::{StatusCode, HttpTryFrom};
 
 use crate::client::ResponseDefinitionBuilder;
 use crate::http::Body;
@@ -105,6 +105,8 @@ pub fn service_unavailable() -> ResponseDefinitionBuilder {
     status(StatusCode::SERVICE_UNAVAILABLE.as_u16())
 }
 
-pub fn status(status: u16) -> ResponseDefinitionBuilder {
+pub fn status<S>(status: S) -> ResponseDefinitionBuilder
+    where StatusCode: HttpTryFrom<S>,
+{
     ResponseDefinitionBuilder::new().with_status(status)
 }

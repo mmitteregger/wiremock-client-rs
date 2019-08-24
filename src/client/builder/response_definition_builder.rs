@@ -1,8 +1,8 @@
-use http::{StatusCode, HttpTryFrom};
+use http::{HttpTryFrom, StatusCode};
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 
-use crate::http::{ResponseDefinition, Body, Fault, DelayDistribution};
 use crate::extension::Parameters;
+use crate::http::{Body, DelayDistribution, Fault, ResponseDefinition};
 
 pub struct ResponseDefinitionBuilder {
     status: u16,
@@ -35,8 +35,14 @@ impl ResponseDefinitionBuilder {
         }
     }
 
-    pub fn with_status(mut self, status: u16) -> ResponseDefinitionBuilder {
-        self.status = status;
+    pub fn with_status<S>(mut self, status: S) -> ResponseDefinitionBuilder
+        where StatusCode: HttpTryFrom<S>,
+    {
+        let status_code = match StatusCode::try_from(status) {
+            Ok(status_code) => status_code,
+            Err(_) => panic!("invalid status code"),
+        };
+        self.status = status_code.as_u16();
         self
     }
 
