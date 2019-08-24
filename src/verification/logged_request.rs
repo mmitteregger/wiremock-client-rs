@@ -21,7 +21,7 @@ pub struct LoggedRequest {
     client_ip: String,
     #[serde(default, skip_serializing_if = "HeaderMap::is_empty", with = "crate::serde::header_map")]
     headers: HeaderMap,
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    #[serde(default)]
     cookies: IndexMap<String, Cookie>,
     #[serde(rename = "browserProxyRequest")]
     browser_proxy_request: bool,
@@ -35,7 +35,7 @@ pub struct LoggedRequest {
     port: u16,
     #[serde(rename = "loggedDateString")]
     logged_date_string: String,
-    #[serde(rename = "queryParams", default, skip_serializing_if = "IndexMap::is_empty")]
+    #[serde(rename = "queryParams", default)]
     query_params: IndexMap<String, QueryParameter>,
 }
 
