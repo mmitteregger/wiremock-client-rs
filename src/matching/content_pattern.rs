@@ -275,7 +275,7 @@ impl Into<ContentPattern> for MatchesJsonPathPattern {
 pub struct MatchesXPathPattern {
     #[serde(rename = "matchesXPath")]
     matches_xpath: String,
-    #[serde(rename = "xPathNamespaces")]
+    #[serde(rename = "xPathNamespaces", default)]
     namespaces: IndexMap<String, String>,
 }
 
