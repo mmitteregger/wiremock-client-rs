@@ -56,25 +56,6 @@ impl WireMock {
 //    router.add(POST, "/mappings/find-by-metadata", FindStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/remove-by-metadata", RemoveStubMappingsByMetadataTask.class);
 //    router.add(POST, "/mappings/import", ImportStubMappingsTask.class);
-//
-//    router.add(GET, "/files", GetAllStubFilesTask.class);
-//    router.add(PUT, "/files/{filename}", EditStubFileTask.class);
-//    router.add(DELETE, "/files/{filename}", DeleteStubFileTask.class);
-//
-//    router.add(GET,  "/requests/{id}", GetServedStubTask.class);
-//
-//    router.add(POST, "/recordings/snapshot", SnapshotTask.class);
-//    router.add(POST, "/recordings/start", StartRecordingTask.class);
-//    router.add(POST, "/recordings/stop", StopRecordingTask.class);
-//    router.add(GET,  "/recordings/status", GetRecordingStatusTask.class);
-//    router.add(GET,  "/recorder", GetRecordingsIndexTask.class);
-//
-//    router.add(PATCH, "/settings/extended", PatchExtendedSettingsTask.class);
-//
-//    router.add(POST, "/shutdown", ShutdownServerTask.class);
-//
-//    router.add(GET, "/docs/swagger", GetSwaggerSpecTask.class);
-//    router.add(GET, "/docs", GetDocIndexTask.class);
 
     pub fn given_that<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<StubMapping> {
         let stub_mapping = stub_mapping.into();
