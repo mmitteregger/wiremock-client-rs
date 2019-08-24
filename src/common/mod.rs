@@ -1,4 +1,4 @@
-pub use crate::common::metadata::Metadata;
+pub use crate::common::metadata::{metadata, Metadata, MetadataBuilder};
 pub use crate::common::timing::Timing;
 
 mod metadata;
