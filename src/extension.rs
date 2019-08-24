@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::FromIterator;
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde::export::fmt::Display;
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct Parameters {
     #[serde(flatten)]
     pub(crate) parameters: serde_json::Map<String, serde_json::Value>,
@@ -204,6 +205,12 @@ impl From<serde_json::Value> for Parameters {
 
 impl From<HashMap<String, serde_json::Value>> for Parameters {
     fn from(parameters: HashMap<String, serde_json::Value>) -> Parameters {
+        Parameters::from_iter(parameters.into_iter())
+    }
+}
+
+impl From<IndexMap<String, serde_json::Value>> for Parameters {
+    fn from(parameters: IndexMap<String, serde_json::Value>) -> Parameters {
         Parameters::from_iter(parameters.into_iter())
     }
 }

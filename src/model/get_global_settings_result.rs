@@ -11,8 +11,10 @@ impl GetGlobalSettingsResult {
     pub fn settings(&self) -> &GlobalSettings {
         &self.settings
     }
+}
 
-    pub fn into_settings(self) -> GlobalSettings {
+impl Into<GlobalSettings> for GetGlobalSettingsResult {
+    fn into(self) -> GlobalSettings {
         self.settings
     }
 }

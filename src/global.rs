@@ -1,22 +1,45 @@
 use serde::{Deserialize, Serialize};
-use indexmap::IndexMap;
 
+use crate::extension::Parameters;
 use crate::http::DelayDistribution;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GlobalSettings {
     #[serde(rename = "fixedDelay")]
     fixed_delay: Option<u16>,
     #[serde(rename = "delayDistribution")]
     delay_distribution: Option<DelayDistribution>,
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    extended: IndexMap<String, serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Parameters::is_empty")]
+    extended: Parameters,
 }
 
+impl GlobalSettings {
+    pub fn fixed_delay(&self) -> Option<u16> {
+        self.fixed_delay
+    }
+
+    pub fn delay_distribution(&self) -> Option<&DelayDistribution> {
+        self.delay_distribution.as_ref()
+    }
+
+    pub fn extended(&self) -> &Parameters {
+        &self.extended
+    }
+
+    pub fn clone_to_builder(&self) -> GlobalSettingsBuilder {
+        GlobalSettingsBuilder {
+            fixed_delay: self.fixed_delay,
+            delay_distribution: self.delay_distribution.clone(),
+            extended: self.extended.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct GlobalSettingsBuilder {
     fixed_delay: Option<u16>,
     delay_distribution: Option<DelayDistribution>,
-    extended: IndexMap<String, serde_json::Value>,
+    extended: Parameters,
 }
 
 impl GlobalSettingsBuilder {
@@ -24,7 +47,7 @@ impl GlobalSettingsBuilder {
         GlobalSettingsBuilder {
             fixed_delay: None,
             delay_distribution: None,
-            extended: IndexMap::new(),
+            extended: Parameters::empty(),
         }
     }
 
@@ -38,8 +61,10 @@ impl GlobalSettingsBuilder {
         self
     }
 
-    pub fn extended(mut self, extended: IndexMap<String, serde_json::Value>) -> GlobalSettingsBuilder {
-        self.extended = extended;
+    pub fn extended<P>(mut self, extended: P) -> GlobalSettingsBuilder
+        where P: Into<Parameters>
+    {
+        self.extended = extended.into();
         self
     }
 

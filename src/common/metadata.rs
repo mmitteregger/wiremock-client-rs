@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::FromIterator;
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde::export::fmt::Display;
 
@@ -206,6 +207,12 @@ impl From<serde_json::Value> for Metadata {
 
 impl From<HashMap<String, serde_json::Value>> for Metadata {
     fn from(metadata: HashMap<String, serde_json::Value>) -> Metadata {
+        Metadata::from_iter(metadata.into_iter())
+    }
+}
+
+impl From<IndexMap<String, serde_json::Value>> for Metadata {
+    fn from(metadata: IndexMap<String, serde_json::Value>) -> Metadata {
         Metadata::from_iter(metadata.into_iter())
     }
 }

@@ -12,7 +12,7 @@ pub use dsl::*;
 
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
-use crate::http::{Error, Result};
+use crate::http::{Error, Result, DelayDistribution};
 use crate::matching::{RequestPattern, StringValuePattern, ContentPattern, CountMatchingStrategy, CountMatchingMode};
 use crate::model::{GetGlobalSettingsResult, GetScenariosResult, GetServeEventsResult, ListStubMappingsResult, SingleServedStubResult, SingleStubMappingResult};
 use crate::security::ClientAuthenticator;
@@ -303,14 +303,35 @@ impl WireMock {
             .map(|_| stub_import.into())
     }
 
+    pub fn set_global_fixed_delay(&self, milliseconds: u16) -> Result<()> {
+        let settings = self.get_global_settings()?
+            .clone_to_builder()
+            .fixed_delay(Some(milliseconds))
+            .build();
+        self.update_global_settings(&settings)
+    }
+
+    pub fn set_global_random_delay(&self, distribution: DelayDistribution) -> Result<()> {
+        let settings = self.get_global_settings()?
+            .clone_to_builder()
+            .delay_distribution(Some(distribution))
+            .build();
+        self.update_global_settings(&settings)
+    }
+
     pub fn update_global_settings(&self, global_settings: &GlobalSettings) -> Result<()> {
         self.send_json_request(Method::POST, "/settings", global_settings)
             .map(|_| ())
     }
 
-    pub fn get_global_settings(&self) -> Result<GetGlobalSettingsResult> {
+    pub fn get_global_settings_result(&self) -> Result<GetGlobalSettingsResult> {
         self.send_empty_request(Method::GET, "/settings")
             .and_then(|mut response| response.json::<GetGlobalSettingsResult>())
+    }
+
+    pub fn get_global_settings(&self) -> Result<GlobalSettings> {
+        self.get_global_settings_result()
+            .map(GetGlobalSettingsResult::into)
     }
 
 

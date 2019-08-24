@@ -486,8 +486,7 @@ fn update_and_reset_global_settings() {
     let wire_mock = create_wire_mock();
 
     let default_global_settings = wire_mock.get_global_settings()
-        .unwrap()
-        .into_settings();
+        .unwrap();
 
     let global_settings = GlobalSettingsBuilder::new()
         .fixed_delay(Some(50))
@@ -503,8 +502,8 @@ fn update_and_reset_global_settings() {
 #[test]
 fn get_global_settings() {
     let wire_mock = create_wire_mock();
-    let get_global_settings_result = wire_mock.get_global_settings().unwrap();
-    print_json_value(&get_global_settings_result);
+    let get_global_settings = wire_mock.get_global_settings().unwrap();
+    print_json_value(&get_global_settings);
 }
 
 #[test]
