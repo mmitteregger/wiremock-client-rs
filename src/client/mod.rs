@@ -16,7 +16,7 @@ use crate::http::{Error, Result};
 use crate::matching::{RequestPattern, StringValuePattern, ContentPattern};
 use crate::model::{GetGlobalSettingsResult, GetScenariosResult, GetServeEventsResult, ListStubMappingsResult, SingleServedStubResult, SingleStubMappingResult};
 use crate::security::ClientAuthenticator;
-use crate::stubbing::{Scenario, ServeEvent, StubMapping};
+use crate::stubbing::{Scenario, ServeEvent, StubMapping, StubImport};
 use crate::verification::{FindNearMissesResult, FindRequestsResult, JournalBasedResult, LoggedRequest, NearMiss, VerificationResult};
 
 pub(crate) mod builder;
@@ -53,8 +53,6 @@ impl WireMock {
     pub fn port(&self) -> u16 {
         self.port
     }
-
-//    router.add(POST, "/mappings/import", ImportStubMappingsTask.class);
 
     pub fn given_that<S: Into<StubMapping>>(&self, stub_mapping: S) -> Result<StubMapping> {
         let stub_mapping = stub_mapping.into();
@@ -259,6 +257,14 @@ impl WireMock {
         let content_pattern: ContentPattern = pattern.into();
         self.send_json_request(Method::POST, "/mappings/remove-by-metadata", &content_pattern)
             .map(|_| ())
+    }
+
+    pub fn import_stubs<I>(&self, stub_import: I) -> Result<Vec<StubMapping>>
+        where I: Into<StubImport>,
+    {
+        let stub_import = stub_import.into();
+        self.send_json_request(Method::POST, "/mappings/import", &stub_import)
+            .map(|_| stub_import.into())
     }
 
     pub fn update_global_settings(&self, global_settings: &GlobalSettings) -> Result<()> {

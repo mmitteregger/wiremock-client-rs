@@ -1,10 +1,12 @@
 use uuid::Uuid;
 
-use wiremock_client::{a_response, containing, equal_to, get, get_requested_for, no_content, ok, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder, any_url, any, post_requested_for, post};
+use wiremock_client::{a_response, any, any_url, containing, equal_to, get, get_requested_for, matching_json_path, no_content, ok, ok_with_body, post, post_requested_for, put, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder};
+use wiremock_client::common::metadata;
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
-use wiremock_client::verification::JournalBasedResult;
 use wiremock_client::stubbing::Scenario;
+use wiremock_client::stubbing::stub_import;
+use wiremock_client::verification::JournalBasedResult;
 
 macro_rules! string_json_map {
     (@single $($x:tt)*) => (());
@@ -449,6 +451,132 @@ fn get_global_settings() {
 fn shutdown_server() {
     let wire_mock = create_wire_mock();
     wire_mock.shutdown_server().unwrap();
+}
+
+#[test]
+pub fn default_stub_import() {
+    let wire_mock = create_wire_mock();
+
+    let original_stub = wire_mock.stub_for(get("/one")
+        .with_id(Uuid::new_v4())
+        .with_metadata(metadata()
+            .attr("overwrites_existing_stubs_by_default", ""))
+        .will_return(ok_with_body("Original")))
+        .unwrap();
+
+    wire_mock.import_stubs(stub_import()
+        .stub(get("/one")
+            .with_id(original_stub.id().clone())
+            .with_metadata(metadata()
+                .attr("overwrites_existing_stubs_by_default", ""))
+            .will_return(ok_with_body("Updated")))
+        .stub(post("/two")
+            .with_metadata(metadata()
+                .attr("overwrites_existing_stubs_by_default", ""))
+            .will_return(ok()))
+        .stub(put("/three")
+            .with_metadata(metadata()
+                .attr("overwrites_existing_stubs_by_default", ""))
+            .will_return(ok())))
+        .unwrap();
+
+    let json_path = matching_json_path("$..overwrites_existing_stubs_by_default");
+    let imported_stubs = wire_mock.find_stubs_by_metadata(json_path).unwrap();
+    print_json_value(&imported_stubs);
+
+    assert_eq!(imported_stubs.len(), 3);
+    for stub in imported_stubs {
+        assert_eq!(wire_mock.remove_stub_mapping(stub.id()).unwrap(), true);
+
+        let request = stub.request();
+
+        if request.url_pattern() == Some(&url_equal_to("/one")) {
+            assert_eq!(stub.response().body(), Some(&"Updated".into()));
+        }
+    }
+}
+
+#[test]
+pub fn create_and_retrieve_stub_metadata() {
+    let wire_mock = create_wire_mock();
+
+    let stub = wire_mock.stub_for(get("/with-metadata")
+        .with_id(Uuid::new_v4())
+        .with_metadata(metadata()
+            .attr("one", 1)
+            .attr("two", "2")
+            .attr("three", true)
+            .attr("four", metadata()
+                .attr("five", "55555")
+            )
+            .list("six", vec![1, 2, 3])
+        ))
+        .unwrap();
+
+    let retrieved_stub = wire_mock.get_stub_mapping(stub.id())
+        .unwrap()
+        .unwrap();
+    assert_eq!(wire_mock.remove_stub_mapping(stub.id()).unwrap(), true);
+
+    let metadata = retrieved_stub.metadata();
+    print_json_value(&metadata);
+
+    assert_eq!(metadata.get_u64("one"), Some(1));
+    assert_eq!(metadata.get_str("two"), Some("2"));
+    assert_eq!(metadata.get_bool("three"), Some(true));
+
+    let four = metadata.get_metadata("four").unwrap();
+
+    assert_eq!(four.get_str("five"), Some("55555"));
+
+    let six = metadata.get_mapped_array("six", |value| value.as_u64()).unwrap();
+    assert_eq!(six[0], Some(1));
+}
+
+#[test]
+pub fn can_find_stubs_by_metadata() {
+    let wire_mock = create_wire_mock();
+
+    let stub1 = wire_mock.stub_for(get("/with-metadata")
+        .with_id(Uuid::new_v4())
+        .with_metadata(metadata()
+            .attr("can_find_stubs_by_metadata-four", metadata()
+                .attr("can_find_stubs_by_metadata-five", "55555")
+            )
+            .list("can_find_stubs_by_metadata-six", vec![1, 2, 3])
+        )).unwrap();
+    let stub2 = wire_mock.stub_for(get("/without-metadata")).unwrap();
+
+    let json_path = "$..can_find_stubs_by_metadata-four.can_find_stubs_by_metadata-five";
+    let stubs = wire_mock.find_stubs_by_metadata(matching_json_path(json_path)).unwrap();
+    print_json_value(&stubs);
+    assert_eq!(wire_mock.remove_stub_mapping(stub1.id()).unwrap(), true);
+    assert_eq!(wire_mock.remove_stub_mapping(stub2.id()).unwrap(), true);
+
+    assert_eq!(stubs.len(), 1);
+    let retrieved_stub = &stubs[0];
+    assert_eq!(retrieved_stub.id(), stub1.id());
+}
+
+#[test]
+pub fn can_remove_stubs_by_metadata() {
+    let wire_mock = create_wire_mock();
+
+    let stub1 = wire_mock.stub_for(get("/with-metadata")
+        .with_id(Uuid::new_v4())
+        .with_metadata(metadata()
+            .attr("can_remove_stubs_by_metadata-four", metadata()
+                .attr("can_remove_stubs_by_metadata-five", "55555")
+            )
+            .list("can_remove_stubs_by_metadata-six", vec![1, 2, 3])
+        )).unwrap();
+    let stub2 = wire_mock.stub_for(get("/without-metadata")).unwrap();
+
+    let json_path = "$..can_remove_stubs_by_metadata-four.can_remove_stubs_by_metadata-five";
+    wire_mock.remove_stubs_by_metadata(matching_json_path(json_path)).unwrap();
+
+    assert_eq!(wire_mock.remove_stub_mapping(stub1.id()).unwrap(), false);
+    assert_eq!(wire_mock.remove_stub_mapping(stub2.id()).unwrap(), true);
 }
 
 
