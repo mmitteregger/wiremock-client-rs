@@ -29,6 +29,14 @@ impl WireMockBuilder {
         self
     }
 
+    pub fn http(self) -> WireMockBuilder {
+        self.scheme("http")
+    }
+
+    pub fn https(self) -> WireMockBuilder {
+        self.scheme("https")
+    }
+
     pub fn host<S: Into<String>>(mut self, host: S) -> WireMockBuilder {
         self.host = host.into();
         self
