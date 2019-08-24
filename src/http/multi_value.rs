@@ -1,8 +1,17 @@
+use std::fmt::Debug;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub(crate) enum MultiValue {
-    Single(String),
-    Multi(Vec<String>),
+pub trait MultiValue: Debug + Serialize + Deserialize<'static> {
+    fn is_present(&self) -> bool;
+
+    fn key(&self) -> &str;
+
+    fn first_value(&self) -> &str;
+
+    fn values(&self) -> &[String];
+
+    fn is_single_valued(&self) -> bool;
+
+    fn contains_value(&self, expected_value: &str) -> bool;
 }
