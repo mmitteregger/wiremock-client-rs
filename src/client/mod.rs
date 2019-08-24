@@ -107,6 +107,11 @@ impl WireMock {
             .and_then(|mut response| response.json::<ListStubMappingsResult>())
     }
 
+    pub fn list_stub_mappings(&self) -> Result<Vec<StubMapping>> {
+        self.list_all_stub_mappings()
+            .map(ListStubMappingsResult::into)
+    }
+
     pub fn get_stub_mapping(&self, id: &Uuid) -> Result<Option<StubMapping>> {
         self.send_empty_request(Method::GET, &format!("/mappings/{}", id))
             .and_then(|mut response| response.json::<SingleStubMappingResult>())
@@ -147,7 +152,7 @@ impl WireMock {
     pub fn get_serve_events(&self) -> Result<Vec<ServeEvent>> {
         self.send_empty_request(Method::GET, "/requests")
             .and_then(|mut response| response.json::<GetServeEventsResult>())
-            .map(|result| result.into())
+            .map(GetServeEventsResult::into)
     }
 
     pub fn get_served_stub(&self, id: &Uuid) -> Result<Option<ServeEvent>> {

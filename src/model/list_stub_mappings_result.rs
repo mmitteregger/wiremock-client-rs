@@ -24,3 +24,9 @@ impl ListStubMappingsResult {
         self.selection()
     }
 }
+
+impl Into<Vec<StubMapping>> for ListStubMappingsResult {
+    fn into(self) -> Vec<StubMapping> {
+        self.mappings
+    }
+}

@@ -163,10 +163,10 @@ fn save_mappings() {
 }
 
 #[test]
-fn list_all_stub_mappings() {
+fn list_stub_mappings() {
     let wire_mock = create_wire_mock();
-    let stub_mappings_result = wire_mock.list_all_stub_mappings().unwrap();
-    print_json_value(&stub_mappings_result);
+    let stub_mappings = wire_mock.list_all_stub_mappings().unwrap();
+    print_json_value(&stub_mappings);
 }
 
 #[test]
