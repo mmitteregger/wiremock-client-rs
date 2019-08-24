@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use http::HeaderMap;
 
-use crate::http::{Body, DelayDistribution, Fault};
+use crate::http::{Body, DelayDistribution, Fault, ChunkedDribbleDelay};
 use crate::extension::Parameters;
 use crate::client::ResponseDefinitionBuilder;
 
@@ -23,6 +23,8 @@ pub struct ResponseDefinition {
     pub(crate) fixed_delay_milliseconds: Option<u32>,
     #[serde(rename = "delayDistribution", skip_serializing_if = "Option::is_none")]
     pub(crate) delay_distribution: Option<DelayDistribution>,
+    #[serde(rename = "chunkedDribbleDelay", skip_serializing_if = "Option::is_none")]
+    pub(crate) chunked_dribble_delay: Option<ChunkedDribbleDelay>,
     /// The base URL of the target to proxy matching requests to.
     #[serde(rename = "proxyBaseUrl", skip_serializing_if = "Option::is_none")]
     pub(crate) proxy_base_url: Option<String>,
@@ -63,6 +65,10 @@ impl ResponseDefinition {
 
     pub fn delay_distribution(&self) -> Option<&DelayDistribution> {
         self.delay_distribution.as_ref()
+    }
+
+    pub fn chunked_dribble_delay(&self) -> Option<&ChunkedDribbleDelay> {
+        self.chunked_dribble_delay.as_ref()
     }
 
     pub fn proxy_base_url(&self) -> Option<&str> {

@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChunkedDribbleDelay {
-    number_of_chunks: u16,
-    total_duration: u16,
+    #[serde(rename = "numberOfChunks")]
+    pub(crate) number_of_chunks: u16,
+    #[serde(rename = "totalDuration")]
+    pub(crate) total_duration: u16,
 }
 
 impl ChunkedDribbleDelay {

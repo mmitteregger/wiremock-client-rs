@@ -2,7 +2,7 @@ use http::{HttpTryFrom, StatusCode};
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 
 use crate::extension::Parameters;
-use crate::http::{Body, DelayDistribution, Fault, ResponseDefinition};
+use crate::http::{Body, DelayDistribution, Fault, ResponseDefinition, ChunkedDribbleDelay};
 
 pub struct ResponseDefinitionBuilder {
     status: u16,
@@ -11,6 +11,7 @@ pub struct ResponseDefinitionBuilder {
     headers: HeaderMap,
     fixed_delay_milliseconds: Option<u32>,
     delay_distribution: Option<DelayDistribution>,
+    chunked_dribble_delay: Option<ChunkedDribbleDelay>,
     proxy_base_url: Option<String>,
     fault: Option<Fault>,
     transformers: Vec<String>,
@@ -27,6 +28,7 @@ impl ResponseDefinitionBuilder {
             headers: HeaderMap::new(),
             fixed_delay_milliseconds: None,
             delay_distribution: None,
+            chunked_dribble_delay: None,
             proxy_base_url: None,
             fault: None,
             transformers: Vec::new(),
@@ -115,10 +117,10 @@ impl ResponseDefinitionBuilder {
         })
     }
 
-//    pub fn with_chunked_dribble_delay(mut self, number_of_chunks: u16, total_duration: u16) -> ResponseDefinitionBuilder {
-//        self.chunkedDribbleDelay = new ChunkedDribbleDelay(number_of_chunks, total_duration);
-//        self
-//    }
+    pub fn with_chunked_dribble_delay(mut self, number_of_chunks: u16, total_duration: u16) -> ResponseDefinitionBuilder {
+        self.chunked_dribble_delay = Some(ChunkedDribbleDelay { number_of_chunks, total_duration });
+        self
+    }
 
     pub fn with_transformer<S>(mut self, response_transformer_name: S) -> ResponseDefinitionBuilder
         where S: Into<String>,
@@ -195,6 +197,7 @@ impl ResponseDefinitionBuilder {
             headers: self.headers,
             fixed_delay_milliseconds: self.fixed_delay_milliseconds,
             delay_distribution: self.delay_distribution,
+            chunked_dribble_delay: self.chunked_dribble_delay,
             proxy_base_url: self.proxy_base_url,
             fault: self.fault,
             transformers: self.transformers,
