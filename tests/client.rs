@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use wiremock_client::{a_response, any, any_url, containing, equal_to, get, get_requested_for, matching_json_path, no_content, ok, ok_with_body, post, post_requested_for, put, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder};
+use wiremock_client::{a_response, any, any_url, containing, equal_to, get, get_requested_for, matching_json_path, no_content, ok, ok_with_body, post, post_requested_for, put, url_equal_to, url_path_equal_to, WireMock, WireMockBuilder, less_than};
 use wiremock_client::common::metadata;
 use wiremock_client::global::GlobalSettingsBuilder;
 use wiremock_client::http::DelayDistribution;
@@ -204,6 +204,67 @@ fn reset_mappings() {
 fn reset_to_default_mappings() {
     let wire_mock = create_wire_mock();
     wire_mock.reset_to_default_mappings().unwrap();
+}
+
+#[test]
+fn verify() {
+    let wire_mock = create_wire_mock();
+    let url = format!("/test/verify?id={}", Uuid::new_v4());
+
+    reqwest::get(&format!("http://localhost:8181{}", &url)).unwrap();
+
+    wire_mock.verify(get_requested_for(url_equal_to(url)));
+}
+
+#[test]
+#[should_panic]
+fn verify_panic() {
+    let wire_mock = create_wire_mock();
+    let url = format!("/test/verify_panic?id={}", Uuid::new_v4());
+
+    reqwest::get(&format!("http://localhost:8181{}", &url)).unwrap();
+
+    wire_mock.verify(get_requested_for(url_equal_to(&url[0..url.len() - 1])));
+}
+
+#[test]
+fn verify_arbitrary_request_count() {
+    let wire_mock = create_wire_mock();
+    let url = format!("/test/verify_arbitrary_request_count?id={}", Uuid::new_v4());
+
+    let absolute_url = format!("http://localhost:8181{}", &url);
+    for _ in 0..4 {
+        reqwest::get(&absolute_url).unwrap();
+    }
+
+    wire_mock.verify_count(4, get_requested_for(url_equal_to(url)));
+}
+
+#[test]
+#[should_panic]
+fn verify_arbitrary_request_count_panic() {
+    let wire_mock = create_wire_mock();
+    let url = format!("/test/verify_arbitrary_request_count?id={}", Uuid::new_v4());
+
+    let absolute_url = format!("http://localhost:8181{}", &url);
+    for _ in 0..4 {
+        reqwest::get(&absolute_url).unwrap();
+    }
+
+    wire_mock.verify_count(3, get_requested_for(url_equal_to(url)));
+}
+
+#[test]
+fn verifies_less_than_count_with_less_requests() {
+    let wire_mock = create_wire_mock();
+    let url = format!("/test/verifies_less_than_count_with_less_requests?id={}", Uuid::new_v4());
+
+    let absolute_url = format!("http://localhost:8181{}", &url);
+    for _ in 0..4 {
+        reqwest::get(&absolute_url).unwrap();
+    }
+
+    wire_mock.verify_count(less_than(5), get_requested_for(url_equal_to(url)));
 }
 
 #[test]

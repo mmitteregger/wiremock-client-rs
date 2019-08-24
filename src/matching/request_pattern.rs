@@ -1,10 +1,13 @@
 use std::borrow::Cow;
-use serde::{Deserialize, Serialize};
-use indexmap::IndexMap;
+use std::fmt;
 
+use indexmap::IndexMap;
+use serde::{Deserialize, Serialize};
+
+use crate::any_url;
 use crate::client::BasicCredentials;
 use crate::http::RequestMethod;
-use crate::matching::{UrlPattern, ContentPattern, RequestPatternBuilder};
+use crate::matching::{ContentPattern, RequestPatternBuilder, UrlPattern};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RequestPattern {
@@ -31,6 +34,10 @@ pub struct RequestPattern {
 }
 
 impl RequestPattern {
+    pub fn everything() -> RequestPattern {
+        RequestPatternBuilder::new(RequestMethod::ANY, any_url()).build()
+    }
+
     pub fn url_pattern(&self) -> Option<&UrlPattern> {
         self.url_pattern.as_ref()
     }
@@ -58,6 +65,11 @@ impl RequestPattern {
     pub fn body_patterns(&self) -> &[ContentPattern] {
         &self.body_patterns
     }
+
+    pub fn has_inline_custom_matcher(&self) -> bool {
+        // Not yet implemented
+        false
+    }
 }
 
 impl From<RequestPatternBuilder> for RequestPattern {
@@ -75,5 +87,11 @@ impl<'a> From<RequestPattern> for Cow<'a, RequestPattern> {
 impl<'a> From<&'a RequestPattern> for Cow<'a, RequestPattern> {
     fn from(request_pattern: &'a RequestPattern) -> Self {
         Cow::Borrowed(request_pattern)
+    }
+}
+
+impl fmt::Display for RequestPattern {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", serde_json::to_string_pretty(self).unwrap())
     }
 }

@@ -13,7 +13,7 @@ pub use dsl::*;
 use crate::client::builder::MappingBuilder;
 use crate::global::GlobalSettings;
 use crate::http::{Error, Result};
-use crate::matching::{RequestPattern, StringValuePattern, ContentPattern};
+use crate::matching::{RequestPattern, StringValuePattern, ContentPattern, CountMatchingStrategy, CountMatchingMode};
 use crate::model::{GetGlobalSettingsResult, GetScenariosResult, GetServeEventsResult, ListStubMappingsResult, SingleServedStubResult, SingleStubMappingResult};
 use crate::security::ClientAuthenticator;
 use crate::stubbing::{Scenario, ServeEvent, StubMapping, StubImport};
@@ -126,6 +126,31 @@ impl WireMock {
         self.send_empty_request(Method::POST, "/mappings/reset")
             .map(|_| ())
     }
+
+    pub fn verify<'a, P>(&self, request_pattern: P)
+        where P: Into<Cow<'a, RequestPattern>>,
+    {
+		self.verify_count(more_than_or_exactly(1), request_pattern);
+	}
+
+    pub fn verify_count<'a, C, P>(&self, expected_count: C, request_pattern: P)
+        where C: Into<CountMatchingStrategy>,
+              P: Into<Cow<'a, RequestPattern>>,
+    {
+        let expected_count = expected_count.into();
+		let request_pattern = request_pattern.into();
+
+		let actual_count = if request_pattern.has_inline_custom_matcher() {
+            unimplemented!("verify_count with inline custom matcher");
+        } else {
+            self.count(request_pattern.as_ref()).unwrap()
+        };
+
+        if !expected_count.is_match(actual_count) {
+            panic!("Expected {} requests matching the following pattern but received {}:\n{}",
+                expected_count, actual_count, request_pattern);
+        }
+	}
 
     pub fn get_serve_events(&self) -> Result<Vec<ServeEvent>> {
         self.send_empty_request(Method::GET, "/requests")
