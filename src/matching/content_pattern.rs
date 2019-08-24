@@ -27,13 +27,13 @@ pub trait StringValuePattern: Debug + Serialize + Deserialize<'static> + Into<Co
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AbsentPattern {
-    absent: String,
+    absent: serde_json::Value,
 }
 
 impl AbsentPattern {
     pub fn new() -> AbsentPattern {
         AbsentPattern {
-            absent: String::new(),
+            absent: serde_json::Value::Bool(true),
         }
     }
 }
